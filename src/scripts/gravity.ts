@@ -1,6 +1,10 @@
 import Matter from 'matter-js';
+import decomp from 'poly-decomp';
 
-const { Engine, Bodies, Body, Composite, Constraint, Query, Sleeping } = Matter;
+const { Engine, Bodies, Body, Composite, Constraint, Query, Sleeping, Common } = Matter;
+
+// Nodig om holle vormen (zoals een truitje met mouwen) op te delen in botsbare stukken
+Common.setDecomp(decomp);
 
 /** Hoe ver (px) je mag bewegen voordat een klik als "slepen" telt. */
 const DRAG_THRESHOLD = 6;
@@ -22,6 +26,9 @@ interface Item {
   body: Matter.Body;
   w: number;
   h: number;
+  /** Linkerbovenhoek van het element t.o.v. het zwaartepunt (de body kan niet-rechthoekig zijn) */
+  dx: number;
+  dy: number;
   state: State;
   leftAt: number;
 }
@@ -77,16 +84,32 @@ export function initGravityPile(container: HTMLElement, bombButton?: HTMLButtonE
   const items: Item[] = els.map((el) => {
     const ratio = parseFloat(el.dataset.ratio || '1') || 1;
     const { w, h } = thumbSize(ratio);
-    const body = Bodies.rectangle(0, -h, w, h, {
+    const opts = {
       chamfer: { radius: 4 },
       restitution: 0.45, // hoe hard ze stuiteren (0 = niet, 1 = superbal)
       friction: 0.5,
       frictionAir: 0.012,
       density: 0.002,
-    });
+    };
+    let body: Matter.Body | undefined;
+    let dx = -w / 2;
+    let dy = -h / 2;
+    // Eigen vorm (contour van het ontwerp) i.p.v. een rechthoek
+    const shape = el.dataset.shape ? (JSON.parse(el.dataset.shape) as [number, number][]) : null;
+    if (shape) {
+      const verts = shape.map(([px, py]) => ({ x: px * w, y: py * h }));
+      const { chamfer, ...rest } = opts;
+      body = Bodies.fromVertices(0, 0, [verts], rest, false, 0.01, 4) as Matter.Body | undefined;
+      if (body) {
+        // Waar ligt de linkerbovenhoek van het element t.o.v. het zwaartepunt?
+        dx = body.bounds.min.x - body.position.x;
+        dy = body.bounds.min.y - body.position.y;
+      }
+    }
+    if (!body) body = Bodies.rectangle(0, -h, w, h, opts);
     el.style.width = `${w}px`;
     el.style.height = `${h}px`;
-    return { el, body, w, h, state: 'off' as State, leftAt: 0 };
+    return { el, body, w, h, dx, dy, state: 'off' as State, leftAt: 0 };
   });
 
   const byBody = new Map(items.map((it) => [it.body.id, it]));
@@ -301,7 +324,7 @@ export function initGravityPile(container: HTMLElement, bombButton?: HTMLButtonE
         removeItem(it);
         continue;
       }
-      it.el.style.transform = `translate(${x - it.w / 2}px, ${y - it.h / 2}px) rotate(${it.body.angle}rad)`;
+      it.el.style.transform = `translate(${x}px, ${y}px) rotate(${it.body.angle}rad) translate(${it.dx}px, ${it.dy}px)`;
       it.el.style.visibility = 'visible';
     }
     requestAnimationFrame(frame);

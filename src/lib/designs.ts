@@ -18,6 +18,8 @@ const textFiles = import.meta.glob<string>('/src/content/designs/*/*.txt', {
 
 export interface Photo {
   name: string;
+  /** Pad in het project, bv. /src/content/designs/x/cover.jpg */
+  path: string;
   image: ImageMetadata;
 }
 
@@ -78,7 +80,7 @@ function buildDesign(folder: string): Design | null {
   const slug = slugify(folder);
   const photos: Photo[] = Object.entries(imageFiles)
     .filter(([path]) => folderOf(path) === folder)
-    .map(([path, image]) => ({ name: fileOf(path), image }))
+    .map(([path, image]) => ({ name: fileOf(path), path, image }))
     .sort((a, b) => sortNatural(a.name, b.name));
   if (!photos.length) return null;
 

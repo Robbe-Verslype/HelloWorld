@@ -2,6 +2,7 @@
 import { getImage } from 'astro:assets';
 import Base from '../layouts/Base.astro';
 import { getDesigns } from '../lib/designs';
+import { getOutline } from '../lib/outline';
 
 const designs = getDesigns();
 
@@ -9,13 +10,21 @@ const designs = getDesigns();
 const items = await Promise.all(
   designs.map(async (d) => {
     const thumb = d.thumbnail.image;
-    const img = await getImage({ src: thumb, width: Math.min(640, thumb.width), format: 'webp' });
+    // Transparante achtergrond? Dan volgt de thumbnail de vorm van het ontwerp
+    const outline = await getOutline(d.thumbnail.path);
+    const img = await getImage({
+      src: thumb,
+      // Bijgesneden vormen tonen maar een deel van de foto: iets groter laden
+      width: Math.min(outline ? 1000 : 640, thumb.width),
+      format: 'webp',
+    });
     return {
       slug: d.slug,
       title: d.title,
       year: d.year,
       src: img.src,
-      ratio: thumb.width / thumb.height,
+      ratio: outline ? outline.ratio : thumb.width / thumb.height,
+      outline,
     };
   }),
 );
@@ -31,13 +40,25 @@ const items = await Promise.all(
     {
       items.map((item) => (
         <a
-          class="thumb"
+          class:list={['thumb', { shaped: item.outline }]}
           href={`/designs/${item.slug}/`}
           data-ratio={item.ratio}
+          data-shape={item.outline ? JSON.stringify(item.outline.points) : undefined}
           draggable="false"
           style={`--vt: thumb-${item.slug}`}
         >
-          <img src={item.src} alt={item.title} draggable="false" loading="eager" />
+          <img
+            src={item.src}
+            alt={item.title}
+            draggable="false"
+            loading="eager"
+            style={
+              item.outline
+                ? // Volledige foto zo verschuiven dat enkel het ontwerp in het kader valt
+                  `width: ${100 / item.outline.crop.w}%; left: ${(-item.outline.crop.x / item.outline.crop.w) * 100}%; top: ${(-item.outline.crop.y / item.outline.crop.h) * 100}%; height: ${100 / item.outline.crop.h}%`
+                : undefined
+            }
+          />
           <span class="label">
             {item.title} <em>{item.year}</em>
           </span>
@@ -151,6 +172,7 @@ const items = await Promise.all(
     top: 0;
     left: 0;
     display: block;
+    transform-origin: 0 0;
     /* Pas zichtbaar zodra de physics hem op een positie zet */
     visibility: hidden;
     touch-action: none;
@@ -175,6 +197,23 @@ const items = await Promise.all(
       0 2px 4px rgb(0 0 0 / 0.12),
       0 16px 40px -10px rgb(0 0 0 / 0.4);
   }
+  /* Thumbnails in de vorm van het ontwerp (transparante achtergrond) */
+  .thumb.shaped img {
+    position: absolute;
+    max-width: none;
+    object-fit: fill;
+    border-radius: 0;
+    box-shadow: none;
+    pointer-events: none;
+    filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.15)) drop-shadow(0 8px 14px rgb(0 0 0 / 0.22));
+    transition: filter 0.2s;
+  }
+  .thumb.shaped:hover img,
+  .thumb.shaped:focus-visible img {
+    box-shadow: none;
+    filter: drop-shadow(0 2px 2px rgb(0 0 0 / 0.15)) drop-shadow(0 16px 24px rgb(0 0 0 / 0.3));
+  }
+
   .thumb:focus-visible {
     outline: 2px solid var(--ink);
     outline-offset: 4px;
