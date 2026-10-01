@@ -114,15 +114,20 @@ function buildDesign(folder: string): Design | null {
   const blocks: Block[] = [];
   const chunks = lines.slice(i).join('\n').split(/\n\s*\n/);
   for (const chunk of chunks) {
-    const text = chunk.trim();
+    let text = chunk.trim();
     if (!text) continue;
+    // "# Titel" mag meteen gevolgd worden door tekst, zonder witregel
+    if (text.startsWith('#')) {
+      const [first, ...rest] = text.split('\n');
+      blocks.push({ type: 'heading', text: first.replace(/^#+\s*/, '') });
+      text = rest.join('\n').trim();
+      if (!text) continue;
+    }
     const photoRef = text.match(/^\[(.+)\]$/);
     const photo = photoRef && byName.get(photoRef[1].trim().toLowerCase());
     if (photo) {
       blocks.push({ type: 'photo', photo });
       used.add(photo);
-    } else if (text.startsWith('#')) {
-      blocks.push({ type: 'heading', text: text.replace(/^#+\s*/, '') });
     } else {
       blocks.push({ type: 'paragraph', lines: text.split('\n').map((l) => l.trim()) });
     }
