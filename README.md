@@ -39,6 +39,7 @@ Klant: Bloom vzw
 Rol: Concept, ontwerp
 Tags: branding, poster
 Kleur: #ff5a36
+Titelkleur: #ff5a36
 
 # De vraag
 Hier je tekst. Een witregel begint een nieuwe alinea.
@@ -52,7 +53,7 @@ Meer tekst onder de foto.
 ```
 
 - **Eerste regel** = titel.
-- **Daarna** optioneel `Jaar:`, `Klant:`, `Rol:`, `Tags:` (komma's) en `Kleur:` (achtergrond van de case).
+- **Daarna** optioneel `Jaar:`, `Klant:`, `Rol:`, `Tags:` (komma's), `Kleur:` (achtergrond van de case) en `Titelkleur:` (kleur van het titelstrookje op de hoop; zonder deze regel wordt de overheersende kleur van de thumbnail gebruikt).
 - `# Tekst` = tussentitel.
 - `[foto.jpg]` op een eigen regel = die foto op die plek in de tekst.
 - Foto's die je niet in de tekst zet, komen automatisch onderaan.
