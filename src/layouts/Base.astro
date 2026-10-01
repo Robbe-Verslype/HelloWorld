@@ -4,6 +4,10 @@ interface Props {
   description?: string;
 }
 const { title, description = 'Een hoop nieuwe designs.' } = Astro.props;
+
+// Halyard Display komt van Adobe Fonts. Vul hier de ID van je web project in
+// (fonts.adobe.com → Web Projects → de code in https://use.typekit.net/XXXXXXX.css).
+const ADOBE_FONTS_ID = '';
 ---
 
 <!doctype html>
@@ -15,6 +19,7 @@ const { title, description = 'Een hoop nieuwe designs.' } = Astro.props;
     <title>{title}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    {ADOBE_FONTS_ID && <link rel="stylesheet" href={`https://use.typekit.net/${ADOBE_FONTS_ID}.css`} />}
     <link
       href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;700&display=swap"
       rel="stylesheet"
@@ -31,6 +36,8 @@ const { title, description = 'Een hoop nieuwe designs.' } = Astro.props;
     --ink: #1d1d1b;
     --muted: #6f6c64;
     --font: 'Inter Tight', system-ui, sans-serif;
+    /* Titels: Halyard Display (Adobe Fonts), anders Inter Tight */
+    --font-display: 'halyard-display', 'Inter Tight', system-ui, sans-serif;
   }
 
   /* Vloeiende overgang tussen thumbnail en case-pagina (Chrome/Safari) */
@@ -51,6 +58,10 @@ const { title, description = 'Een hoop nieuwe designs.' } = Astro.props;
     color: var(--ink);
     font-family: var(--font);
     -webkit-font-smoothing: antialiased;
+  }
+
+  h1 {
+    font-family: var(--font-display);
   }
 
   a {
