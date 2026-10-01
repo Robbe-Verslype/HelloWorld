@@ -1,0 +1,164 @@
+---
+import { getCollection } from 'astro:content';
+import { getImage } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+
+const designs = (await getCollection('designs', ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.year - a.data.year,
+);
+
+// Kleinere, geoptimaliseerde versies van de thumbnails maken
+const items = await Promise.all(
+  designs.map(async (d) => {
+    const img = await getImage({ src: d.data.thumbnail, width: 640, format: 'webp' });
+    return {
+      slug: d.id,
+      title: d.data.title,
+      year: d.data.year,
+      src: img.src,
+      ratio: d.data.thumbnail.width / d.data.thumbnail.height,
+    };
+  }),
+);
+---
+
+<Base title="Robbe Verslype — Designs">
+  <header class="intro">
+    <h1>Robbe Verslype</h1>
+    <p>Een hoop nieuwe designs. Sleep ze rond, klik om de case te lezen.</p>
+  </header>
+
+  <main class="pile" id="pile" aria-label="Designs">
+    {
+      items.map((item) => (
+        <a
+          class="thumb"
+          href={`/designs/${item.slug}/`}
+          data-ratio={item.ratio}
+          draggable="false"
+          style={`--vt: thumb-${item.slug}`}
+        >
+          <img src={item.src} alt={item.title} draggable="false" loading="eager" />
+          <span class="label">
+            {item.title} <em>{item.year}</em>
+          </span>
+        </a>
+      ))
+    }
+  </main>
+
+  <noscript>
+    <style>
+      .pile { display: flex; flex-wrap: wrap; gap: 1rem; padding: 6rem 1rem 1rem; height: auto; }
+      .thumb { position: static; width: 220px; visibility: visible; }
+    </style>
+  </noscript>
+</Base>
+
+<style>
+  .intro {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 2;
+    padding: 1.25rem 1rem;
+    max-width: 32rem;
+    pointer-events: none;
+  }
+  .intro h1 {
+    margin: 0;
+    font-size: clamp(1.5rem, 4vw, 2.75rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+  .intro p {
+    margin: 0.5rem 0 0;
+    color: var(--muted);
+    font-size: 0.95rem;
+  }
+
+  .pile {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .thumb {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: block;
+    /* Pas zichtbaar zodra de physics hem op een positie zet */
+    visibility: hidden;
+    touch-action: none;
+    cursor: grab;
+    will-change: transform;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 4px;
+    box-shadow:
+      0 1px 2px rgb(0 0 0 / 0.12),
+      0 8px 24px -8px rgb(0 0 0 / 0.25);
+    transition: box-shadow 0.2s;
+    view-transition-name: var(--vt);
+  }
+  .thumb:hover img,
+  .thumb:focus-visible img {
+    box-shadow:
+      0 2px 4px rgb(0 0 0 / 0.12),
+      0 16px 40px -10px rgb(0 0 0 / 0.4);
+  }
+  .thumb:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 4px;
+  }
+  .thumb.dragging {
+    cursor: grabbing;
+  }
+
+  .label {
+    position: absolute;
+    left: 0;
+    bottom: calc(100% + 6px);
+    padding: 0.25rem 0.5rem;
+    background: var(--ink);
+    color: var(--bg);
+    font-size: 0.8rem;
+    white-space: nowrap;
+    border-radius: 3px;
+    opacity: 0;
+    transform: translateY(4px);
+    transition:
+      opacity 0.15s,
+      transform 0.15s;
+    pointer-events: none;
+  }
+  .label em {
+    font-style: normal;
+    opacity: 0.6;
+  }
+  .thumb:hover .label,
+  .thumb:focus-visible .label {
+    opacity: 1;
+    transform: none;
+  }
+  .thumb.dragging .label {
+    opacity: 0;
+  }
+</style>
+
+<script>
+  import { initGravityPile } from '../scripts/gravity';
+
+  const pile = document.getElementById('pile');
+  if (pile) initGravityPile(pile);
+</script>
