@@ -1,25 +1,23 @@
----
-title: "Stadsmuseum"
-year: 2024
-client: "Stad Gent"
-role: "Concept, ontwerp"
-tags: ["identiteit", "signage"]
-thumbnail: ./thumbnail.jpg
-color: "#2f6f4f"
----
+Stadsmuseum
+Jaar: 2024
+Klant: Stad Gent
+Rol: Concept, ontwerp
+Tags: identiteit, signage
+Kleur: #2f6f4f
 
-## De vraag
+
+# De vraag
 
 Vervang deze tekst door de briefing: wat was het probleem, voor wie, en wat moest het ontwerp bereiken?
 
-## Aanpak
+# Aanpak
 
 Beschrijf hoe je het hebt aangepakt: onderzoek, moodboards, eerste schetsen, keuzes die je maakte en waarom.
 
-![Schetsen en iteraties](./proces.jpg)
+[proces.jpg]
 
-## Resultaat
+# Resultaat
 
 Vertel wat het eindresultaat is geworden en wat je eruit geleerd hebt.
 
-![Het eindontwerp](./resultaat.jpg)
+Foto's die je niet in de tekst plaatst, verschijnen vanzelf hieronder.

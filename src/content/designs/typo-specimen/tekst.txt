@@ -1,25 +1,22 @@
----
-title: "Koffie Kompas"
-year: 2025
-client: "Kompas Coffee"
-role: "Concept, ontwerp"
-tags: ["packaging"]
-thumbnail: ./thumbnail.jpg
-color: "#c9a46a"
----
+Grotesk Specimen
+Jaar: 2025
+Rol: Concept, ontwerp
+Tags: typografie
+Kleur: #e8e4da
 
-## De vraag
+
+# De vraag
 
 Vervang deze tekst door de briefing: wat was het probleem, voor wie, en wat moest het ontwerp bereiken?
 
-## Aanpak
+# Aanpak
 
 Beschrijf hoe je het hebt aangepakt: onderzoek, moodboards, eerste schetsen, keuzes die je maakte en waarom.
 
-![Schetsen en iteraties](./proces.jpg)
+[proces.jpg]
 
-## Resultaat
+# Resultaat
 
 Vertel wat het eindresultaat is geworden en wat je eruit geleerd hebt.
 
-![Het eindontwerp](./resultaat.jpg)
+Foto's die je niet in de tekst plaatst, verschijnen vanzelf hieronder.

@@ -1,25 +1,23 @@
----
-title: "Bloom Festival"
-year: 2026
-client: "Bloom vzw"
-role: "Concept, ontwerp"
-tags: ["branding", "poster"]
-thumbnail: ./thumbnail.jpg
-color: "#ff5a36"
----
+Atlas App
+Jaar: 2025
+Klant: Atlas
+Rol: Concept, ontwerp
+Tags: ui, app
+Kleur: #3a5bff
 
-## De vraag
+
+# De vraag
 
 Vervang deze tekst door de briefing: wat was het probleem, voor wie, en wat moest het ontwerp bereiken?
 
-## Aanpak
+# Aanpak
 
 Beschrijf hoe je het hebt aangepakt: onderzoek, moodboards, eerste schetsen, keuzes die je maakte en waarom.
 
-![Schetsen en iteraties](./proces.jpg)
+[proces.jpg]
 
-## Resultaat
+# Resultaat
 
 Vertel wat het eindresultaat is geworden en wat je eruit geleerd hebt.
 
-![Het eindontwerp](./resultaat.jpg)
+Foto's die je niet in de tekst plaatst, verschijnen vanzelf hieronder.

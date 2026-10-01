@@ -1,25 +1,23 @@
----
-title: "Atlas App"
-year: 2025
-client: "Atlas"
-role: "Concept, ontwerp"
-tags: ["ui", "app"]
-thumbnail: ./thumbnail.jpg
-color: "#3a5bff"
----
+Loop Magazine
+Jaar: 2024
+Klant: Loop
+Rol: Concept, ontwerp
+Tags: editorial
+Kleur: #f2c94c
 
-## De vraag
+
+# De vraag
 
 Vervang deze tekst door de briefing: wat was het probleem, voor wie, en wat moest het ontwerp bereiken?
 
-## Aanpak
+# Aanpak
 
 Beschrijf hoe je het hebt aangepakt: onderzoek, moodboards, eerste schetsen, keuzes die je maakte en waarom.
 
-![Schetsen en iteraties](./proces.jpg)
+[proces.jpg]
 
-## Resultaat
+# Resultaat
 
 Vertel wat het eindresultaat is geworden en wat je eruit geleerd hebt.
 
-![Het eindontwerp](./resultaat.jpg)
+Foto's die je niet in de tekst plaatst, verschijnen vanzelf hieronder.

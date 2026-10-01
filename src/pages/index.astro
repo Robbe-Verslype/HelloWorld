@@ -1,22 +1,21 @@
 ---
-import { getCollection } from 'astro:content';
 import { getImage } from 'astro:assets';
 import Base from '../layouts/Base.astro';
+import { getDesigns } from '../lib/designs';
 
-const designs = (await getCollection('designs', ({ data }) => !data.draft)).sort(
-  (a, b) => b.data.year - a.data.year,
-);
+const designs = getDesigns();
 
 // Kleinere, geoptimaliseerde versies van de thumbnails maken
 const items = await Promise.all(
   designs.map(async (d) => {
-    const img = await getImage({ src: d.data.thumbnail, width: 640, format: 'webp' });
+    const thumb = d.thumbnail.image;
+    const img = await getImage({ src: thumb, width: Math.min(640, thumb.width), format: 'webp' });
     return {
-      slug: d.id,
-      title: d.data.title,
-      year: d.data.year,
+      slug: d.slug,
+      title: d.title,
+      year: d.year,
       src: img.src,
-      ratio: d.data.thumbnail.width / d.data.thumbnail.height,
+      ratio: thumb.width / thumb.height,
     };
   }),
 );

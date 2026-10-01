@@ -1,24 +1,23 @@
----
-title: "Zine Vol. 3"
-year: 2024
-role: "Concept, ontwerp"
-tags: ["print", "experiment"]
-thumbnail: ./thumbnail.jpg
-color: "#b8a1ff"
----
+Nocturne Records
+Jaar: 2026
+Klant: Nocturne
+Rol: Concept, ontwerp
+Tags: album art
+Kleur: #1d1d1b
 
-## De vraag
+
+# De vraag
 
 Vervang deze tekst door de briefing: wat was het probleem, voor wie, en wat moest het ontwerp bereiken?
 
-## Aanpak
+# Aanpak
 
 Beschrijf hoe je het hebt aangepakt: onderzoek, moodboards, eerste schetsen, keuzes die je maakte en waarom.
 
-![Schetsen en iteraties](./proces.jpg)
+[proces.jpg]
 
-## Resultaat
+# Resultaat
 
 Vertel wat het eindresultaat is geworden en wat je eruit geleerd hebt.
 
-![Het eindontwerp](./resultaat.jpg)
+Foto's die je niet in de tekst plaatst, verschijnen vanzelf hieronder.

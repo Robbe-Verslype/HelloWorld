@@ -1,25 +1,23 @@
----
-title: "Nocturne Records"
-year: 2026
-client: "Nocturne"
-role: "Concept, ontwerp"
-tags: ["album art"]
-thumbnail: ./thumbnail.jpg
-color: "#1d1d1b"
----
+Bloom Festival
+Jaar: 2026
+Klant: Bloom vzw
+Rol: Concept, ontwerp
+Tags: branding, poster
+Kleur: #ff5a36
 
-## De vraag
+
+# De vraag
 
 Vervang deze tekst door de briefing: wat was het probleem, voor wie, en wat moest het ontwerp bereiken?
 
-## Aanpak
+# Aanpak
 
 Beschrijf hoe je het hebt aangepakt: onderzoek, moodboards, eerste schetsen, keuzes die je maakte en waarom.
 
-![Schetsen en iteraties](./proces.jpg)
+[proces.jpg]
 
-## Resultaat
+# Resultaat
 
 Vertel wat het eindresultaat is geworden en wat je eruit geleerd hebt.
 
-![Het eindontwerp](./resultaat.jpg)
+Foto's die je niet in de tekst plaatst, verschijnen vanzelf hieronder.
