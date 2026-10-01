@@ -1,0 +1,222 @@
+---
+import { getImage } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import { getDesigns } from '../lib/designs';
+
+const designs = getDesigns();
+
+// Kleinere, geoptimaliseerde versies van de thumbnails maken
+const items = await Promise.all(
+  designs.map(async (d) => {
+    const thumb = d.thumbnail.image;
+    const img = await getImage({ src: thumb, width: Math.min(640, thumb.width), format: 'webp' });
+    return {
+      slug: d.slug,
+      title: d.title,
+      year: d.year,
+      src: img.src,
+      ratio: thumb.width / thumb.height,
+    };
+  }),
+);
+---
+
+<Base title="Robbe Verslype — Designs">
+  <header class="intro">
+    <h1>Robbe Verslype</h1>
+    <p>Een hoop nieuwe designs. Sleep ze rond, klik om de case te lezen.</p>
+  </header>
+
+  <main class="pile" id="pile" aria-label="Designs">
+    {
+      items.map((item) => (
+        <a
+          class="thumb"
+          href={`/designs/${item.slug}/`}
+          data-ratio={item.ratio}
+          draggable="false"
+          style={`--vt: thumb-${item.slug}`}
+        >
+          <img src={item.src} alt={item.title} draggable="false" loading="eager" />
+          <span class="label">
+            {item.title} <em>{item.year}</em>
+          </span>
+        </a>
+      ))
+    }
+  </main>
+
+  <button class="bomb" id="bomb" type="button" aria-label="Laat de bom afgaan">
+    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+      <circle cx="10" cy="14" r="7" fill="currentColor"></circle>
+      <path d="M14.5 8.5 17 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+      <path d="M18 2.5v2M21.5 6h-2M20.5 3.5l-1.3 1.3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path>
+    </svg>
+    <span>Boem</span>
+    <span class="pile-count" data-pile hidden></span>
+  </button>
+
+  <noscript>
+    <style>
+      .pile { display: flex; flex-wrap: wrap; gap: 1rem; padding: 6rem 1rem 1rem; height: auto; }
+      .thumb { position: static; width: 220px; visibility: visible; }
+      .bomb { display: none; }
+    </style>
+  </noscript>
+</Base>
+
+<style>
+  .intro {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 2;
+    padding: 1.25rem 1rem;
+    max-width: 32rem;
+    pointer-events: none;
+  }
+  .intro h1 {
+    margin: 0;
+    font-size: clamp(1.5rem, 4vw, 2.75rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+  .intro p {
+    margin: 0.5rem 0 0;
+    color: var(--muted);
+    font-size: 0.95rem;
+  }
+
+  .pile {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .bomb {
+    position: fixed;
+    right: 1rem;
+    bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+    z-index: 100000;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.1rem 0.7rem 0.9rem;
+    border: 0;
+    border-radius: 999px;
+    background: var(--ink);
+    color: var(--bg);
+    font: 500 0.95rem var(--font);
+    cursor: pointer;
+    box-shadow: 0 8px 24px -8px rgb(0 0 0 / 0.4);
+    transition: transform 0.15s;
+  }
+  .bomb:hover {
+    transform: scale(1.05) rotate(-3deg);
+  }
+  .bomb:active {
+    transform: scale(0.95);
+  }
+  .bomb:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 3px;
+  }
+  .pile-count {
+    opacity: 0.6;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Kleine schok van het scherm als de bom afgaat */
+  .pile.boom {
+    animation: shake 0.4s ease-out;
+  }
+  @keyframes shake {
+    0%, 100% { transform: none; }
+    20% { transform: translate(-6px, 4px); }
+    40% { transform: translate(5px, -3px); }
+    60% { transform: translate(-3px, 2px); }
+    80% { transform: translate(2px, -1px); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pile.boom { animation: none; }
+  }
+
+  .thumb {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: block;
+    /* Pas zichtbaar zodra de physics hem op een positie zet */
+    visibility: hidden;
+    touch-action: none;
+    cursor: grab;
+    will-change: transform;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 4px;
+    box-shadow:
+      0 1px 2px rgb(0 0 0 / 0.12),
+      0 8px 24px -8px rgb(0 0 0 / 0.25);
+    transition: box-shadow 0.2s;
+    view-transition-name: var(--vt);
+  }
+  .thumb:hover img,
+  .thumb:focus-visible img {
+    box-shadow:
+      0 2px 4px rgb(0 0 0 / 0.12),
+      0 16px 40px -10px rgb(0 0 0 / 0.4);
+  }
+  .thumb:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 4px;
+  }
+  .thumb.dragging {
+    cursor: grabbing;
+  }
+
+  .label {
+    position: absolute;
+    left: 0;
+    bottom: calc(100% + 6px);
+    padding: 0.25rem 0.5rem;
+    background: var(--ink);
+    color: var(--bg);
+    font-size: 0.8rem;
+    white-space: nowrap;
+    border-radius: 3px;
+    opacity: 0;
+    transform: translateY(4px);
+    transition:
+      opacity 0.15s,
+      transform 0.15s;
+    pointer-events: none;
+  }
+  .label em {
+    font-style: normal;
+    opacity: 0.6;
+  }
+  .thumb:hover .label,
+  .thumb:focus-visible .label {
+    opacity: 1;
+    transform: none;
+  }
+  .thumb.dragging .label {
+    opacity: 0;
+  }
+</style>
+
+<script>
+  import { initGravityPile } from '../scripts/gravity';
+
+  const pile = document.getElementById('pile');
+  if (pile) initGravityPile(pile, document.querySelector<HTMLButtonElement>('#bomb'));
+</script>
