@@ -39,7 +39,7 @@ const items = await Promise.all(
         >
           <img src={item.src} alt={item.title} draggable="false" loading="eager" />
           <span class="label">
-            {item.title} <em>{item.year}</em>
+            {item.title}
           </span>
         </a>
       ))
@@ -150,7 +150,15 @@ const items = await Promise.all(
     position: absolute;
     top: 0;
     left: 0;
-    display: block;
+    display: flex;
+    flex-direction: column;
+    border-radius: 4px;
+    overflow: hidden;
+    background: var(--ink);
+    box-shadow:
+      0 1px 2px rgb(0 0 0 / 0.12),
+      0 8px 24px -8px rgb(0 0 0 / 0.25);
+    transition: box-shadow 0.2s;
     /* Pas zichtbaar zodra de physics hem op een positie zet */
     visibility: hidden;
     touch-action: none;
@@ -160,17 +168,15 @@ const items = await Promise.all(
   }
   .thumb img {
     width: 100%;
-    height: 100%;
+    flex: 1 1 auto;
+    min-height: 0;
     object-fit: cover;
-    border-radius: 4px;
-    box-shadow:
-      0 1px 2px rgb(0 0 0 / 0.12),
-      0 8px 24px -8px rgb(0 0 0 / 0.25);
-    transition: box-shadow 0.2s;
+    /* Foto's met transparante achtergrond krijgen de paginakleur */
+    background: var(--bg);
     view-transition-name: var(--vt);
   }
-  .thumb:hover img,
-  .thumb:focus-visible img {
+  .thumb:hover,
+  .thumb:focus-visible {
     box-shadow:
       0 2px 4px rgb(0 0 0 / 0.12),
       0 16px 40px -10px rgb(0 0 0 / 0.4);
@@ -183,37 +189,16 @@ const items = await Promise.all(
     cursor: grabbing;
   }
 
-  /* Titel altijd zichtbaar, als labeltje linksonder op de thumbnail */
+  /* Titel als strookje onder de foto (hoort bij de thumbnail) */
   .label {
-    position: absolute;
-    left: 8px;
-    bottom: 8px;
-    max-width: calc(100% - 16px);
-    padding: 0.2rem 0.5rem;
-    background: var(--ink);
+    flex: none;
+    padding: 0.3rem 0.5rem 0.35rem;
     color: var(--bg);
     font-family: var(--font-display);
     font-size: 0.78rem;
     font-weight: 500;
     line-height: 1.3;
-    /* Lange titels lopen over max. 2 regels */
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    overflow: hidden;
-    border-radius: 3px;
     pointer-events: none;
-  }
-  /* Jaartal enkel bij hover */
-  .label em {
-    display: none;
-    font-style: normal;
-    opacity: 0.6;
-  }
-  .thumb:hover .label em,
-  .thumb:focus-visible .label em {
-    display: inline;
   }
 </style>
 

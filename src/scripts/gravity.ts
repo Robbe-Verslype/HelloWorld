@@ -76,7 +76,11 @@ export function initGravityPile(container: HTMLElement, bombButton?: HTMLButtonE
   // --- Eén physics-body per thumbnail ---
   const items: Item[] = els.map((el) => {
     const ratio = parseFloat(el.dataset.ratio || '1') || 1;
-    const { w, h } = thumbSize(ratio);
+    const { w, h: imgH } = thumbSize(ratio);
+    // Het titelstrookje onder de foto hoort bij de thumbnail: hoogte meten en optellen
+    el.style.width = `${w}px`;
+    const caption = el.querySelector<HTMLElement>('.label')?.offsetHeight ?? 0;
+    const h = imgH + caption;
     const body = Bodies.rectangle(0, -h, w, h, {
       chamfer: { radius: 4 },
       restitution: 0.45, // hoe hard ze stuiteren (0 = niet, 1 = superbal)
@@ -84,7 +88,6 @@ export function initGravityPile(container: HTMLElement, bombButton?: HTMLButtonE
       frictionAir: 0.012,
       density: 0.002,
     });
-    el.style.width = `${w}px`;
     el.style.height = `${h}px`;
     return { el, body, w, h, state: 'off' as State, leftAt: 0 };
   });
