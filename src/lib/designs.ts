@@ -18,8 +18,6 @@ const textFiles = import.meta.glob<string>('/src/content/designs/*/*.txt', {
 
 export interface Photo {
   name: string;
-  /** Pad in het project, bv. /src/content/designs/x/cover.jpg */
-  path: string;
   image: ImageMetadata;
 }
 
@@ -36,8 +34,6 @@ export interface Design {
   role?: string;
   tags: string[];
   color: string;
-  /** Optioneel: vaste kleur voor het titelstrookje op de hoop */
-  captionColor?: string;
   thumbnail: Photo;
   /** Tekst met eventueel foto's ertussen ([naam.jpg]) */
   blocks: Block[];
@@ -46,8 +42,7 @@ export interface Design {
 }
 
 // Woorden die je bovenaan het .txt-bestand mag gebruiken
-type Key = 'year' | 'client' | 'role' | 'tags' | 'color' | 'captionColor';
-const KEYS: Record<string, Key> = {
+const KEYS: Record<string, 'year' | 'client' | 'role' | 'tags' | 'color'> = {
   jaar: 'year',
   year: 'year',
   klant: 'client',
@@ -57,18 +52,12 @@ const KEYS: Record<string, Key> = {
   tags: 'tags',
   kleur: 'color',
   color: 'color',
-  titelkleur: 'captionColor',
 };
 
 const folderOf = (path: string) => path.split('/').at(-2)!;
 const fileOf = (path: string) => path.split('/').at(-1)!;
 const sortNatural = (a: string, b: string) =>
   a.localeCompare(b, 'nl', { numeric: true, sensitivity: 'base' });
-
-function hex(value?: string) {
-  if (!value || !/^#?[0-9a-f]{3,8}$/i.test(value)) return undefined;
-  return value.startsWith('#') ? value : `#${value}`;
-}
 
 function prettify(slug: string) {
   const s = slug.replace(/[-_]+/g, ' ').trim();
@@ -89,7 +78,7 @@ function buildDesign(folder: string): Design | null {
   const slug = slugify(folder);
   const photos: Photo[] = Object.entries(imageFiles)
     .filter(([path]) => folderOf(path) === folder)
-    .map(([path, image]) => ({ name: fileOf(path), path, image }))
+    .map(([path, image]) => ({ name: fileOf(path), image }))
     .sort((a, b) => sortNatural(a.name, b.name));
   if (!photos.length) return null;
 
@@ -106,7 +95,7 @@ function buildDesign(folder: string): Design | null {
   i++;
 
   // 2. Daarna "Sleutel: waarde"-regels (Jaar, Klant, Rol, Tags, Kleur)
-  const meta: Partial<Record<Key, string>> = {};
+  const meta: Partial<Record<'year' | 'client' | 'role' | 'tags' | 'color', string>> = {};
   for (; i < lines.length; i++) {
     const line = lines[i].trim();
     if (!line) continue;
@@ -152,8 +141,9 @@ function buildDesign(folder: string): Design | null {
     client: meta.client,
     role: meta.role,
     tags: meta.tags ? meta.tags.split(',').map((t) => t.trim()).filter(Boolean) : [],
-    color: hex(meta.color) ?? '#f1efe9',
-    captionColor: hex(meta.captionColor),
+    color: meta.color && /^#?[0-9a-f]{3,8}$/i.test(meta.color)
+      ? (meta.color.startsWith('#') ? meta.color : `#${meta.color}`)
+      : '#f1efe9',
     thumbnail,
     blocks,
     gallery: photos.filter((p) => !used.has(p)),
