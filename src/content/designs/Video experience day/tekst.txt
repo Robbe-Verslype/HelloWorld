@@ -28,7 +28,7 @@ Het grafisch systeem bouwt hierop verder. Het bestaat uit kruisende lijnen die l
 [1-abri-poster.webp]
 
 # Kleuren
-Het kleurensysteem bestaat uit twee delen: een donkerblauwe basis en een accentkleur. Die accentkleur verandert naargelang het onderdeel van het evenement waarover gecommuniceerd wordt: groen voor kennisdeling, geel voor het awardgedeelte en lichtblauw voor kennisdeling.
+Het kleurensysteem bestaat uit twee delen: een donkerblauwe basis en een accentkleur. Die accentkleur verandert naargelang het onderdeel van het evenement waarover gecommuniceerd wordt: groen voor het connecteren met andere creatives, geel voor het awardgedeelte en lichtblauw voor kennisdeling.
 
 [2-badges.webp]
 
