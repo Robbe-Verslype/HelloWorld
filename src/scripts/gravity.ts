@@ -1,6 +1,12 @@
 import Matter from 'matter-js';
 
-const { Engine, Bodies, Body, Composite, Constraint, Query, Sleeping } = Matter;
+const { Engine, Bodies, Body, Composite, Constraint, Query, Sleeping, Events } = Matter;
+
+/** Squishy: hoe sterk een thumbnail indeukt bij een botsing, en hoe hij nawiebelt. */
+const SQUISH_STRENGTH = 0.022; // indeuk per eenheid botssnelheid
+const SQUISH_MAX = 0.28; // maximaal 28% plat
+const SQUISH_STIFFNESS = 0.22; // veer: hoe snel hij terugveert
+const SQUISH_DAMPING = 0.82; // hoe lang hij nawiebelt (hoger = langer)
 
 /** Hoe ver (px) je mag bewegen voordat een klik als "slepen" telt. */
 const DRAG_THRESHOLD = 6;
@@ -24,6 +30,11 @@ interface Item {
   h: number;
   state: State;
   leftAt: number;
+  /** Squash & stretch: >0 = plat langs de lokale as, <0 = uitgerekt */
+  squish: number;
+  squishVel: number;
+  /** Indeuken langs de lokale x-as (true) of y-as (false) */
+  squishX: boolean;
 }
 
 export function initGravityPile(container: HTMLElement, bombButton?: HTMLButtonElement | null) {
@@ -79,14 +90,14 @@ export function initGravityPile(container: HTMLElement, bombButton?: HTMLButtonE
     const { w, h } = thumbSize(ratio);
     const body = Bodies.rectangle(0, -h, w, h, {
       chamfer: { radius: 4 },
-      restitution: 0.45, // hoe hard ze stuiteren (0 = niet, 1 = superbal)
+      restitution: 0.62, // hoe hard ze stuiteren (0 = niet, 1 = superbal)
       friction: 0.5,
       frictionAir: 0.012,
       density: 0.002,
     });
     el.style.width = `${w}px`;
     el.style.height = `${h}px`;
-    return { el, body, w, h, state: 'off' as State, leftAt: 0 };
+    return { el, body, w, h, state: 'off' as State, leftAt: 0, squish: 0, squishVel: 0, squishX: false };
   });
 
   const byBody = new Map(items.map((it) => [it.body.id, it]));
@@ -211,7 +222,31 @@ export function initGravityPile(container: HTMLElement, bombButton?: HTMLButtonE
     wakeAll();
     drag = { item, constraint, startX: e.clientX, startY: e.clientY, moved: false };
     bringToFront(item);
+    // Klein "knijp"-effect bij oppakken
+    item.squishVel -= 0.06;
   });
+
+  // --- Squishy: bij elke botsing deukt de thumbnail in, afhankelijk van hoe hard het was ---
+  if (!reduceMotion) {
+    Events.on(engine, 'collisionStart', (event) => {
+      for (const pair of event.pairs) {
+        const a = pair.bodyA.parent;
+        const b = pair.bodyB.parent;
+        const rel = Matter.Vector.sub(a.velocity, b.velocity);
+        const n = pair.collision.normal;
+        const impact = Math.abs(rel.x * n.x + rel.y * n.y);
+        if (impact < 1.2) continue;
+        for (const body of [a, b]) {
+          const it = byBody.get(body.id);
+          if (!it || it.state === 'off') continue;
+          // Botsrichting omrekenen naar het assenstelsel van de (gedraaide) thumbnail
+          const local = Matter.Vector.rotate(n, -body.angle);
+          it.squishX = Math.abs(local.x) > Math.abs(local.y);
+          it.squish = Math.min(SQUISH_MAX, Math.max(it.squish, impact * SQUISH_STRENGTH));
+        }
+      }
+    });
+  }
 
   // Op window luisteren zodat slepen buiten de thumbnail blijft werken
   addEventListener('pointermove', (e) => {
@@ -301,7 +336,16 @@ export function initGravityPile(container: HTMLElement, bombButton?: HTMLButtonE
         removeItem(it);
         continue;
       }
-      it.el.style.transform = `translate(${x - it.w / 2}px, ${y - it.h / 2}px) rotate(${it.body.angle}rad)`;
+      // Veer laat de thumbnail terugveren en nawiebelen
+      it.squishVel = (it.squishVel - it.squish * SQUISH_STIFFNESS) * SQUISH_DAMPING;
+      it.squish += it.squishVel;
+      if (Math.abs(it.squish) < 0.001 && Math.abs(it.squishVel) < 0.001) it.squish = it.squishVel = 0;
+      // Plat in de ene richting = breder in de andere (volume blijft ongeveer gelijk)
+      const flat = 1 - it.squish;
+      const wide = 1 + it.squish * 0.8;
+      const [sx, sy] = it.squishX ? [flat, wide] : [wide, flat];
+      // transform-origin is het midden van de thumbnail: draaien en indeuken gebeurt rond het zwaartepunt
+      it.el.style.transform = `translate(${x - it.w / 2}px, ${y - it.h / 2}px) rotate(${it.body.angle}rad) scale(${sx.toFixed(3)}, ${sy.toFixed(3)})`;
       it.el.style.visibility = 'visible';
     }
     requestAnimationFrame(frame);
