@@ -93,6 +93,14 @@ const sectionPhotos = sections.flatMap((s) => s.blocks.filter((b) => b.type === 
 </Base>
 
 <script>
+  // Altijd bovenaan de case beginnen, ook als de browser een oude scrollpositie onthoudt
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+  const toTop = () => {
+    if (!location.hash) window.scrollTo(0, 0);
+  };
+  toTop();
+  addEventListener('pageshow', toTop);
+
   // Maar één dropdown tegelijk open (ook in browsers zonder <details name>)
   const all = document.querySelectorAll<HTMLDetailsElement>('.section details');
   for (const d of all) {
