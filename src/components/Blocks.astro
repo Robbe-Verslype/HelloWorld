@@ -7,16 +7,33 @@ interface Props {
   blocks: Block[];
 }
 const { blocks } = Astro.props;
+
+// Video's die na elkaar staan, komen naast elkaar in één rij (zoals reels)
+type Clip = Extract<Block, { type: 'clip' }>;
+type Item = Block | { type: 'clips'; clips: Clip[] };
+const items: Item[] = [];
+for (const block of blocks) {
+  const last = items.at(-1);
+  if (block.type === 'clip') {
+    if (last?.type === 'clips') last.clips.push(block);
+    else items.push({ type: 'clips', clips: [block] });
+  } else items.push(block);
+}
 ---
 
 {
-  blocks.map((block) =>
-    block.type === 'heading' ? (
+  items.map((block) =>
+    block.type === 'clips' ? (
+      <div class="clips" style={`--cols: ${Math.min(block.clips.length, 3)}`}>
+        {block.clips.map((clip) => (
+          // #t=0.1 laat de browser het eerste beeld tonen vóór je op play drukt
+          <video class="clip" src={`${clip.src}#t=0.1`} controls playsinline preload="metadata" />
+        ))}
+      </div>
+    ) : block.type === 'heading' ? (
       <h3>{block.text}</h3>
     ) : block.type === 'photo' ? (
       <Image src={block.photo.image} alt="" width={Math.min(1800, block.photo.image.width)} class="photo" />
-    ) : block.type === 'clip' ? (
-      <video class="clip" src={block.src} controls playsinline preload="metadata" />
     ) : block.type === 'video' ? (
       <div class:list={['video', { vertical: block.vertical, insta: block.kind !== 'video', post: block.kind === 'post' }]}>
         <iframe
@@ -41,14 +58,24 @@ const { blocks } = Astro.props;
 }
 
 <style>
-  /* Eigen videobestanden: houden hun eigen verhouding, staande video's niet hoger dan het scherm */
+  /* Eigen videobestanden: vullen de kolom, in hun eigen verhouding */
+  .clips {
+    display: grid;
+    grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+  /* Op gsm: onder elkaar, net als de foto's */
+  @media (max-width: 600px) {
+    .clips {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 1.5rem;
+    }
+  }
   .clip {
     display: block;
-    width: auto;
-    max-width: 100%;
+    width: 100%;
     height: auto;
     max-height: 85vh;
-    margin-inline: auto;
     border-radius: 4px;
     background: #000;
   }
