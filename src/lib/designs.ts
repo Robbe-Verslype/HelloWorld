@@ -169,9 +169,11 @@ function buildDesign(folder: string): Design | null {
     if (embed) {
       const url = videoRef![1];
       const kind = /instagram\.com\/(?:[\w.]+\/)?p\//.test(url) ? 'post' : /instagram\.com\/(?:[\w.]+\/)?(reels?|tv)\//.test(url) ? 'reel' : 'video';
+      // Een Instagram-link met /p/ kan ook een reel zijn: met "staand" tonen we hem als reel
+      const kindFinal = kind === 'post' && videoRef![2]?.toLowerCase() === 'staand' ? 'reel' : kind;
       const vertical =
-        kind === 'reel' || videoRef![2]?.toLowerCase() === 'staand' || /youtube\.com\/shorts\//.test(url);
-      target().push({ type: 'video', embed, vertical, kind });
+        kindFinal === 'reel' || videoRef![2]?.toLowerCase() === 'staand' || /youtube\.com\/shorts\//.test(url);
+      target().push({ type: 'video', embed, vertical, kind: kindFinal });
     } else if (photo) {
       target().push({ type: 'photo', photo });
       used.add(photo);
