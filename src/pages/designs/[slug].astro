@@ -1,7 +1,8 @@
 ---
 import { Image } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
-import { getDesigns, type Design } from '../../lib/designs';
+import Blocks from '../../components/Blocks.astro';
+import { getDesigns, isMedia, type Design } from '../../lib/designs';
 
 // Maakt automatisch één pagina per mapje
 export function getStaticPaths() {
@@ -9,7 +10,13 @@ export function getStaticPaths() {
 }
 
 const { design } = Astro.props as { design: Design };
-const { title, year, client, role, tags, thumbnail, color, blocks, gallery } = design;
+const { title, year, client, role, tags, thumbnail, color, blocks, sections, gallery, extraClips } = design;
+// Dropdowns blijven bij elkaar; hun foto's komen er samen onder
+// De thumbnail staat al bovenaan, dus die niet nog eens in de lijst
+const introBlocks = blocks.filter((b) => !(b.type === 'photo' && b.photo.name === thumbnail.name));
+const sectionPhotos = sections.flatMap((s) =>
+  s.blocks.filter((b) => isMedia(b) && !(b.type === 'photo' && b.photo.name === thumbnail.name)),
+);
 ---
 
 <Base title={`${title} — Robbe Verslype`}>
@@ -38,51 +45,75 @@ const { title, year, client, role, tags, thumbnail, color, blocks, gallery } = d
     </header>
 
     <div class="case">
+      {/* Links: tekst en dropdowns */}
+      <div class="case-text">
+        {introBlocks.length > 0 && <Blocks blocks={introBlocks} />}
+
+        {
+          sections.length > 0 && (
+            <div class="sections">
+              {sections.map((section) => {
+                const text = section.blocks.filter((b) => !isMedia(b));
+                return (
+                  <div class="section">
+                    {text.length > 0 ? (
+                      <details name="case-sections">
+                        <summary>
+                          <span>{section.title}</span>
+                          <span class="icon" aria-hidden="true" />
+                        </summary>
+                        <div class="section-body">
+                          <Blocks blocks={text} />
+                        </div>
+                      </details>
+                    ) : (
+                      <h2 class="section-title">{section.title}</h2>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )
+        }
+      </div>
+
+      {/* Rechts (op gsm eronder): alle foto's, altijd zichtbaar */}
       {
-        blocks.map((block) =>
-          block.type === 'heading' ? (
-            <h2>{block.text}</h2>
-          ) : block.type === 'photo' ? (
-            <Image
-              src={block.photo.image}
-              alt=""
-              width={Math.min(1800, block.photo.image.width)}
-              class="photo"
-            />
-          ) : (
-            <p>
-              {block.lines.map((line, i) => (
-                <>
-                  {i > 0 && <br />}
-                  {line}
-                </>
-              ))}
-            </p>
-          ),
+        (sectionPhotos.length > 0 || gallery.length > 0 || extraClips.length > 0) && (
+          <div class="case-photos">
+            <Blocks blocks={sectionPhotos} />
+            <Blocks blocks={extraClips} />
+            {gallery.map((photo) => (
+              <Image src={photo.image} alt="" width={Math.min(1800, photo.image.width)} class="photo" />
+            ))}
+          </div>
         )
       }
     </div>
-
-    {
-      gallery.length > 0 && (
-        <div class="gallery">
-          {gallery.map((photo) => (
-            <Image
-              src={photo.image}
-              alt=""
-              width={Math.min(1800, photo.image.width)}
-              class="photo"
-            />
-          ))}
-        </div>
-      )
-    }
   </article>
 
   <footer class="end">
     <a href="/">← Terug naar de hoop</a>
   </footer>
 </Base>
+
+<script>
+  // Altijd bovenaan de case beginnen, ook als de browser een oude scrollpositie onthoudt
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+  const toTop = () => {
+    if (!location.hash) window.scrollTo(0, 0);
+  };
+  toTop();
+  addEventListener('pageshow', toTop);
+
+  // Maar één dropdown tegelijk open (ook in browsers zonder <details name>)
+  const all = document.querySelectorAll<HTMLDetailsElement>('.section details');
+  for (const d of all) {
+    d.addEventListener('toggle', () => {
+      if (d.open) for (const other of all) if (other !== d) other.open = false;
+    });
+  }
+</script>
 
 <style>
   .back {
@@ -152,37 +183,131 @@ const { title, year, client, role, tags, thumbnail, color, blocks, gallery } = d
     box-shadow: 0 20px 50px -20px rgb(0 0 0 / 0.45);
   }
 
+  /* Twee kolommen: links de dropdowns, rechts de foto's. Op gsm onder elkaar. */
   .case {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
     max-width: 44rem;
     margin: 0 auto;
     padding: 3rem 1rem 1rem;
     font-size: 1.125rem;
     line-height: 1.65;
   }
-  .case h2 {
-    margin: 3rem 0 0.75rem;
-    font-size: 1.6rem;
+  .case-text,
+  .case-photos {
+    min-width: 0;
+  }
+  @media (min-width: 900px) {
+    .case {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      gap: 3rem;
+      max-width: 82rem;
+      padding: 4rem 3rem 1rem;
+      align-items: start;
+    }
+    /* De dropdowns blijven in beeld terwijl je langs de foto's scrolt */
+    .case-text {
+      position: sticky;
+      top: 5rem;
+      max-height: calc(100vh - 6rem);
+      overflow-y: auto;
+    }
+  }
+  .case :global(h3) {
+    margin: 2.25rem 0 0.5rem;
+    font-size: 1.3rem;
     letter-spacing: -0.02em;
   }
-  .photo {
-    width: 100%;
-    height: auto;
-    margin: 2rem 0;
-    border-radius: 4px;
+  .case :global(p) {
+    margin: 0 0 1rem;
   }
-  @media (min-width: 1000px) {
-    /* Foto's in de tekst mogen breder zijn dan de tekst */
-    .case .photo {
-      width: calc(100% + 16rem);
-      max-width: none;
-      margin-inline: -8rem;
+
+  /* De drie dropdowns */
+  .sections {
+    border-top: 1px solid rgb(0 0 0 / 0.15);
+  }
+  .section {
+    border-bottom: 1px solid rgb(0 0 0 / 0.15);
+  }
+  .section summary,
+  .section-title {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.4rem 0;
+    font-family: var(--font-display);
+    font-size: clamp(1.35rem, 3vw, 1.9rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    cursor: pointer;
+    list-style: none;
+  }
+  .section summary::-webkit-details-marker {
+    display: none;
+  }
+  .section-title {
+    cursor: default;
+  }
+  .section summary:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 4px;
+  }
+  /* Plus dat een min wordt als de dropdown open is */
+  .icon {
+    position: relative;
+    flex: none;
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+  .icon::before,
+  .icon::after {
+    content: '';
+    position: absolute;
+    inset: 50% 0 auto;
+    height: 2px;
+    margin-top: -1px;
+    background: currentColor;
+    transition: transform 0.2s;
+  }
+  .icon::after {
+    transform: rotate(90deg);
+  }
+  .section details[open] .icon::after {
+    transform: rotate(0deg);
+  }
+  .section-body {
+    padding-bottom: 1.5rem;
+  }
+  .section-body > :global(:first-child) {
+    margin-top: 0;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .section details[open] .section-body {
+      animation: open 0.25s ease-out;
+    }
+  }
+  @keyframes open {
+    from {
+      opacity: 0;
+      transform: translateY(-6px);
     }
   }
 
-  .gallery {
-    max-width: 60rem;
-    margin: 0 auto;
-    padding: 0 1rem;
+  .case-photos {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  .case :global(.photo) {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin: 0;
+    border-radius: 4px;
   }
 
   .end {

@@ -4,9 +4,10 @@ Rol: Logo design
 Tags: logo design, branding, muziek
 Kleur: #1d1d1b
 
-# De case
+--- De klant + opdracht
 Een logo voor DJ Yacav. Het was mijn allereerste project: ik ontwierp het al voordat ik aan de opleiding Grafische en Digitale Media aan AP Hogeschool begon.
 
+--- Manier van aanpak
 # De eerste versie
 In het eerste logo combineerde ik de letters Y en C met een V die gevormd wordt door een kettinkje met een dogtag. Op die dogtag staat de volledige naam: YACAV.
 
@@ -15,11 +16,15 @@ In het eerste logo combineerde ik de letters Y en C met een V die gevormd wordt 
 # De herwerking
 Toen ik er later op terugkeek, vond ik dat de drie letters nog niet genoeg samenhang hadden. Ze stonden eerder naast elkaar dan dat ze één geheel vormden. Daarom heb ik het logo herwerkt: in de nieuwe versie lopen de Y, de C en de V in elkaar over en delen ze dezelfde schuine lijnen. Zo lezen de letters als één compact beeldmerk.
 
-[cover.webp]
+[2-logo-herwerkt.webp]
 
-# In gebruik
-Het logo op kleding en achter de draaitafels.
+--- Het resultaat
+Het logo als zilveren hanger, op kleding en op de affiche van Archie Fest.
 
-[3-dj-shirt.jpg]
+[cover.jpg]
 
-[4-dj-set.jpg]
+[3-hanger.jpg]
+
+[4-dj-shirt.jpg]
+
+[5-affiche-archie-fest.jpg]

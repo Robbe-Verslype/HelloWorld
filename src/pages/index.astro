@@ -82,6 +82,12 @@ const items = await Promise.all(
     letter-spacing: -0.03em;
     line-height: 1;
   }
+  /* Op smalle schermen ruimte laten voor de Contact-knop rechtsboven */
+  @media (max-width: 640px) {
+    .intro {
+      padding-right: 8rem;
+    }
+  }
   .intro p {
     margin: 0.5rem 0 0;
     color: var(--muted);

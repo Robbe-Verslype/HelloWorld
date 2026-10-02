@@ -1,4 +1,6 @@
 ---
+import Contact from '../components/Contact.astro';
+
 interface Props {
   title: string;
   description?: string;
@@ -27,6 +29,7 @@ const ADOBE_FONTS_ID = 'ira3tvv';
   </head>
   <body>
     <slot />
+    <Contact />
   </body>
 </html>
 

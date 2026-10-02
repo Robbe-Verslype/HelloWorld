@@ -10,6 +10,12 @@ const imageFiles = import.meta.glob<ImageMetadata>(
   '/src/content/designs/*/*.{jpg,JPG,jpeg,JPEG,png,PNG,webp,WEBP,avif,AVIF,gif,GIF}',
   { eager: true, import: 'default' },
 );
+// Eigen videobestanden (mp4/webm/mov) in de projectmap
+const videoFiles = import.meta.glob<string>('/src/content/designs/*/*.{mp4,MP4,webm,WEBM,mov,MOV,m4v,M4V}', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+});
 const textFiles = import.meta.glob<string>('/src/content/designs/*/*.txt', {
   eager: true,
   query: '?raw',
@@ -24,7 +30,34 @@ export interface Photo {
 export type Block =
   | { type: 'heading'; text: string }
   | { type: 'paragraph'; lines: string[] }
-  | { type: 'photo'; photo: Photo };
+  | { type: 'photo'; photo: Photo }
+  | { type: 'video'; embed: string; vertical: boolean; kind: 'reel' | 'post' | 'video' }
+  | { type: 'clip'; src: string; name: string };
+
+/**
+ * Link naar een video (Google Drive, YouTube of Vimeo) → adres om in de pagina te tonen.
+ * Geeft undefined terug als het geen herkende videolink is.
+ */
+function videoEmbed(url: string): string | undefined {
+  let m = url.match(/instagram\.com\/(?:[\w.]+\/)?(reels?|p|tv)\/([\w-]+)/);
+  if (m) return `https://www.instagram.com/${m[1] === 'p' ? 'p' : 'reel'}/${m[2]}/embed`;
+  m = url.match(/drive\.google\.com\/(?:file\/d\/|open\?id=)([\w-]+)/);
+  if (m) return `https://drive.google.com/file/d/${m[1]}/preview`;
+  m = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([\w-]{6,})/);
+  if (m) return `https://www.youtube-nocookie.com/embed/${m[1]}`;
+  m = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+  if (m) return `https://player.vimeo.com/video/${m[1]}`;
+  return undefined;
+}
+
+/** Foto's en video's samen: alles wat in de beeldkolom komt. */
+export const isMedia = (b: Block): b is Extract<Block, { type: 'photo' | 'video' | 'clip' }> =>
+  b.type === 'photo' || b.type === 'video' || b.type === 'clip';
+
+export interface Section {
+  title: string;
+  blocks: Block[];
+}
 
 export interface Design {
   slug: string;
@@ -35,10 +68,14 @@ export interface Design {
   tags: string[];
   color: string;
   thumbnail: Photo;
-  /** Tekst met eventueel foto's ertussen ([naam.jpg]) */
+  /** Tekst vóór de eerste dropdown (optioneel) */
   blocks: Block[];
+  /** Dropdowns: elke "--- Titel"-regel start er een */
+  sections: Section[];
   /** Foto's die niet in de tekst geplaatst zijn: komen onderaan */
   gallery: Photo[];
+  /** Videobestanden die niet in de tekst geplaatst zijn */
+  extraClips: Block[];
 }
 
 // Woorden die je bovenaan het .txt-bestand mag gebruiken
@@ -107,29 +144,60 @@ function buildDesign(folder: string): Design | null {
 
   // 3. De rest is het verhaal
   const byName = new Map(photos.map((p) => [p.name.toLowerCase(), p]));
+  const clips = Object.entries(videoFiles)
+    .filter(([path]) => folderOf(path) === folder)
+    .map(([path, src]) => ({ name: fileOf(path), src }))
+    .sort((a, b) => sortNatural(a.name, b.name));
+  const clipByName = new Map(clips.map((c) => [c.name.toLowerCase(), c]));
+  const usedClips = new Set<string>();
   const thumbnail =
     photos.find((p) => /^(thumbnail|thumb|cover)\./i.test(p.name)) ?? photos[0];
   const used = new Set<Photo>([thumbnail]);
 
   const blocks: Block[] = [];
+  const sections: Section[] = [];
+  // Blokken komen in de laatst geopende dropdown, of vóór de dropdowns
+  const target = () => sections.at(-1)?.blocks ?? blocks;
   const chunks = lines.slice(i).join('\n').split(/\n\s*\n/);
   for (const chunk of chunks) {
     let text = chunk.trim();
     if (!text) continue;
+    // "--- Titel" start een nieuwe dropdown (tekst mag er meteen onder staan)
+    if (text.startsWith('---')) {
+      const [first, ...rest] = text.split('\n');
+      sections.push({ title: first.replace(/^-+\s*/, '').trim(), blocks: [] });
+      text = rest.join('\n').trim();
+      if (!text) continue;
+    }
     // "# Titel" mag meteen gevolgd worden door tekst, zonder witregel
     if (text.startsWith('#')) {
       const [first, ...rest] = text.split('\n');
-      blocks.push({ type: 'heading', text: first.replace(/^#+\s*/, '') });
+      target().push({ type: 'heading', text: first.replace(/^#+\s*/, '') });
       text = rest.join('\n').trim();
       if (!text) continue;
     }
     const photoRef = text.match(/^\[(.+)\]$/);
     const photo = photoRef && byName.get(photoRef[1].trim().toLowerCase());
-    if (photo) {
-      blocks.push({ type: 'photo', photo });
+    // [https://videolink] of [https://videolink staand] (voor reels / verticale video's)
+    const videoRef = photoRef && photoRef[1].trim().match(/^(https?:\/\/\S+)(?:\s+(staand|liggend))?$/i);
+    const embed = videoRef && videoEmbed(videoRef[1]);
+    if (embed) {
+      const url = videoRef![1];
+      const kind = /instagram\.com\/(?:[\w.]+\/)?p\//.test(url) ? 'post' : /instagram\.com\/(?:[\w.]+\/)?(reels?|tv)\//.test(url) ? 'reel' : 'video';
+      // Een Instagram-link met /p/ kan ook een reel zijn: met "staand" tonen we hem als reel
+      const kindFinal = kind === 'post' && videoRef![2]?.toLowerCase() === 'staand' ? 'reel' : kind;
+      const vertical =
+        kindFinal === 'reel' || videoRef![2]?.toLowerCase() === 'staand' || /youtube\.com\/shorts\//.test(url);
+      target().push({ type: 'video', embed, vertical, kind: kindFinal });
+    } else if (photoRef && clipByName.has(photoRef[1].trim().toLowerCase())) {
+      const clip = clipByName.get(photoRef[1].trim().toLowerCase())!;
+      target().push({ type: 'clip', src: clip.src, name: clip.name });
+      usedClips.add(clip.name);
+    } else if (photo) {
+      target().push({ type: 'photo', photo });
       used.add(photo);
     } else {
-      blocks.push({ type: 'paragraph', lines: text.split('\n').map((l) => l.trim()) });
+      target().push({ type: 'paragraph', lines: text.split('\n').map((l) => l.trim()) });
     }
   }
 
@@ -146,7 +214,11 @@ function buildDesign(folder: string): Design | null {
       : '#f1efe9',
     thumbnail,
     blocks,
+    sections,
     gallery: photos.filter((p) => !used.has(p)),
+    extraClips: clips
+      .filter((c) => !usedClips.has(c.name))
+      .map((c) => ({ type: 'clip' as const, src: c.src, name: c.name })),
   };
 }
 
