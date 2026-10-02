@@ -1,0 +1,133 @@
+---
+// Contactknop rechtsboven met een dropdown
+const email = 'robbe.verslype@gmail.com';
+const phone = '0476 36 84 25';
+const phoneLink = '+32476368425';
+---
+
+<div class="contact" data-contact>
+  <button class="contact-toggle" type="button" aria-expanded="false" aria-controls="contact-menu">
+    Contact
+    <svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true">
+      <path d="M2 4.5 6 8l4-3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path>
+    </svg>
+  </button>
+  <div class="contact-menu" id="contact-menu" hidden>
+    <a href={`mailto:${email}`}>
+      <span class="kind">E-mail</span>
+      <span class="value">{email}</span>
+    </a>
+    <a href={`tel:${phoneLink}`}>
+      <span class="kind">Telefoon</span>
+      <span class="value">{phone}</span>
+    </a>
+  </div>
+</div>
+
+<style>
+  .contact {
+    position: fixed;
+    top: calc(1rem + env(safe-area-inset-top, 0px));
+    right: 1rem;
+    z-index: 100001;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+  }
+  .contact-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.6rem 1rem;
+    border: 0;
+    border-radius: 999px;
+    background: var(--ink);
+    color: var(--bg);
+    font: 500 0.95rem var(--font);
+    cursor: pointer;
+    box-shadow: 0 8px 24px -8px rgb(0 0 0 / 0.4);
+  }
+  .contact-toggle svg {
+    transition: transform 0.2s;
+  }
+  .contact-toggle[aria-expanded='true'] svg {
+    transform: rotate(180deg);
+  }
+  .contact-toggle:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 3px;
+  }
+
+  .contact-menu {
+    display: flex;
+    flex-direction: column;
+    min-width: 15rem;
+    max-width: calc(100vw - 2rem);
+    padding: 0.4rem;
+    background: var(--bg);
+    border: 1px solid rgb(0 0 0 / 0.08);
+    border-radius: 12px;
+    box-shadow: 0 16px 40px -12px rgb(0 0 0 / 0.35);
+    animation: drop 0.18s ease-out;
+  }
+  .contact-menu[hidden] {
+    display: none;
+  }
+  @keyframes drop {
+    from {
+      opacity: 0;
+      transform: translateY(-6px);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .contact-menu {
+      animation: none;
+    }
+  }
+  .contact-menu a {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: 8px;
+    text-decoration: none;
+  }
+  .contact-menu a:hover,
+  .contact-menu a:focus-visible {
+    background: rgb(0 0 0 / 0.06);
+    outline: none;
+  }
+  .kind {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+  }
+  .value {
+    font-size: 0.95rem;
+    overflow-wrap: anywhere;
+  }
+</style>
+
+<script>
+  for (const root of document.querySelectorAll<HTMLElement>('[data-contact]')) {
+    const toggle = root.querySelector<HTMLButtonElement>('.contact-toggle')!;
+    const menu = root.querySelector<HTMLElement>('.contact-menu')!;
+    const setOpen = (open: boolean) => {
+      menu.hidden = !open;
+      toggle.setAttribute('aria-expanded', String(open));
+    };
+    toggle.addEventListener('click', () => setOpen(menu.hidden));
+    // Sluiten bij klikken ernaast of op Escape
+    document.addEventListener('pointerdown', (e) => {
+      if (!menu.hidden && !root.contains(e.target as Node)) setOpen(false);
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !menu.hidden) {
+        setOpen(false);
+        toggle.focus();
+      }
+    });
+  }
+</script>
