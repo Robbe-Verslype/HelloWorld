@@ -11,6 +11,8 @@ export function getStaticPaths() {
 
 const { design } = Astro.props as { design: Design };
 const { title, year, client, role, tags, thumbnail, color, blocks, sections, gallery } = design;
+// Dropdowns blijven bij elkaar; hun foto's komen er samen onder
+const sectionPhotos = sections.flatMap((s) => s.blocks.filter((b) => b.type === 'photo'));
 ---
 
 <Base title={`${title} — Robbe Verslype`}>
@@ -45,9 +47,7 @@ const { title, year, client, role, tags, thumbnail, color, blocks, sections, gal
         sections.length > 0 && (
           <div class="sections">
             {sections.map((section) => {
-              // Tekst zit in de dropdown, foto's staan er altijd zichtbaar onder
               const text = section.blocks.filter((b) => b.type !== 'photo');
-              const photos = section.blocks.filter((b) => b.type === 'photo');
               return (
                 <div class="section">
                   {text.length > 0 ? (
@@ -63,14 +63,18 @@ const { title, year, client, role, tags, thumbnail, color, blocks, sections, gal
                   ) : (
                     <h2 class="section-title">{section.title}</h2>
                   )}
-                  {photos.length > 0 && (
-                    <div class="section-photos">
-                      <Blocks blocks={photos} />
-                    </div>
-                  )}
                 </div>
               );
             })}
+          </div>
+        )
+      }
+
+      {/* Foto's van alle dropdowns, altijd zichtbaar onder de groep dropdowns */}
+      {
+        sectionPhotos.length > 0 && (
+          <div class="section-photos">
+            <Blocks blocks={sectionPhotos} />
           </div>
         )
       }
@@ -241,10 +245,7 @@ const { title, year, client, role, tags, thumbnail, color, blocks, sections, gal
     padding-bottom: 1.5rem;
   }
   .section-photos {
-    padding-bottom: 0.5rem;
-  }
-  .section-photos :global(.photo:first-child) {
-    margin-top: 0;
+    padding-top: 1rem;
   }
   .section-body > :global(:first-child) {
     margin-top: 0;
