@@ -15,6 +15,8 @@ const { blocks } = Astro.props;
       <h3>{block.text}</h3>
     ) : block.type === 'photo' ? (
       <Image src={block.photo.image} alt="" width={Math.min(1800, block.photo.image.width)} class="photo" />
+    ) : block.type === 'clip' ? (
+      <video class="clip" src={block.src} controls playsinline preload="metadata" />
     ) : block.type === 'video' ? (
       <div class:list={['video', { vertical: block.vertical, insta: block.kind !== 'video', post: block.kind === 'post' }]}>
         <iframe
@@ -39,6 +41,17 @@ const { blocks } = Astro.props;
 }
 
 <style>
+  /* Eigen videobestanden: houden hun eigen verhouding, staande video's niet hoger dan het scherm */
+  .clip {
+    display: block;
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    max-height: 85vh;
+    margin-inline: auto;
+    border-radius: 4px;
+    background: #000;
+  }
   .video {
     position: relative;
     width: 100%;

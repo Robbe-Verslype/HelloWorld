@@ -10,6 +10,12 @@ const imageFiles = import.meta.glob<ImageMetadata>(
   '/src/content/designs/*/*.{jpg,JPG,jpeg,JPEG,png,PNG,webp,WEBP,avif,AVIF,gif,GIF}',
   { eager: true, import: 'default' },
 );
+// Eigen videobestanden (mp4/webm/mov) in de projectmap
+const videoFiles = import.meta.glob<string>('/src/content/designs/*/*.{mp4,MP4,webm,WEBM,mov,MOV,m4v,M4V}', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+});
 const textFiles = import.meta.glob<string>('/src/content/designs/*/*.txt', {
   eager: true,
   query: '?raw',
@@ -25,7 +31,8 @@ export type Block =
   | { type: 'heading'; text: string }
   | { type: 'paragraph'; lines: string[] }
   | { type: 'photo'; photo: Photo }
-  | { type: 'video'; embed: string; vertical: boolean; kind: 'reel' | 'post' | 'video' };
+  | { type: 'video'; embed: string; vertical: boolean; kind: 'reel' | 'post' | 'video' }
+  | { type: 'clip'; src: string; name: string };
 
 /**
  * Link naar een video (Google Drive, YouTube of Vimeo) → adres om in de pagina te tonen.
@@ -44,8 +51,8 @@ function videoEmbed(url: string): string | undefined {
 }
 
 /** Foto's en video's samen: alles wat in de beeldkolom komt. */
-export const isMedia = (b: Block): b is Extract<Block, { type: 'photo' | 'video' }> =>
-  b.type === 'photo' || b.type === 'video';
+export const isMedia = (b: Block): b is Extract<Block, { type: 'photo' | 'video' | 'clip' }> =>
+  b.type === 'photo' || b.type === 'video' || b.type === 'clip';
 
 export interface Section {
   title: string;
@@ -67,6 +74,8 @@ export interface Design {
   sections: Section[];
   /** Foto's die niet in de tekst geplaatst zijn: komen onderaan */
   gallery: Photo[];
+  /** Videobestanden die niet in de tekst geplaatst zijn */
+  extraClips: Block[];
 }
 
 // Woorden die je bovenaan het .txt-bestand mag gebruiken
@@ -135,6 +144,12 @@ function buildDesign(folder: string): Design | null {
 
   // 3. De rest is het verhaal
   const byName = new Map(photos.map((p) => [p.name.toLowerCase(), p]));
+  const clips = Object.entries(videoFiles)
+    .filter(([path]) => folderOf(path) === folder)
+    .map(([path, src]) => ({ name: fileOf(path), src }))
+    .sort((a, b) => sortNatural(a.name, b.name));
+  const clipByName = new Map(clips.map((c) => [c.name.toLowerCase(), c]));
+  const usedClips = new Set<string>();
   const thumbnail =
     photos.find((p) => /^(thumbnail|thumb|cover)\./i.test(p.name)) ?? photos[0];
   const used = new Set<Photo>([thumbnail]);
@@ -174,6 +189,10 @@ function buildDesign(folder: string): Design | null {
       const vertical =
         kindFinal === 'reel' || videoRef![2]?.toLowerCase() === 'staand' || /youtube\.com\/shorts\//.test(url);
       target().push({ type: 'video', embed, vertical, kind: kindFinal });
+    } else if (photoRef && clipByName.has(photoRef[1].trim().toLowerCase())) {
+      const clip = clipByName.get(photoRef[1].trim().toLowerCase())!;
+      target().push({ type: 'clip', src: clip.src, name: clip.name });
+      usedClips.add(clip.name);
     } else if (photo) {
       target().push({ type: 'photo', photo });
       used.add(photo);
@@ -197,6 +216,9 @@ function buildDesign(folder: string): Design | null {
     blocks,
     sections,
     gallery: photos.filter((p) => !used.has(p)),
+    extraClips: clips
+      .filter((c) => !usedClips.has(c.name))
+      .map((c) => ({ type: 'clip' as const, src: c.src, name: c.name })),
   };
 }
 

@@ -62,7 +62,8 @@ Het eindresultaat en wat je ervan geleerd hebt.
 - `--- Titel` = start een **dropdown** op de case-pagina. Alles eronder (tot de volgende `---`) zit in die dropdown.
 - `# Tekst` = tussentitel binnen een dropdown.
 - `[foto.jpg]` op een eigen regel = die foto hoort bij die dropdown. Op een groot scherm staan de dropdowns links en alle foto's rechts (in dezelfde volgorde); op gsm staan de foto's onder de dropdowns.
-- **Video's:** zet een link naar een Instagram-reel of -post, YouTube, Vimeo of Google Drive tussen haakjes op een eigen regel, bv. `[https://drive.google.com/file/d/…/view]`. Instagram-reels staan vanzelf rechtop; voor andere staande video's zet je er ` staand` achter: `[https://… staand]`. Bij Google Drive moet het bestand gedeeld zijn met **Iedereen met de link**.
+- **Eigen videobestanden:** zet een `.mp4` (of `.webm`/`.mov`) in de projectmap. Plaats hem met `[filmpje.mp4]`, of laat hem weg uit de tekst: dan komt hij vanzelf bij de foto's. Verklein video's eerst (bv. met HandBrake, onder ~15 MB per video), anders laadt je site traag.
+- **Video's van andere sites:** zet een link naar een Instagram-reel of -post, YouTube, Vimeo of Google Drive tussen haakjes op een eigen regel, bv. `[https://drive.google.com/file/d/…/view]`. Instagram-reels staan vanzelf rechtop; voor andere staande video's zet je er ` staand` achter: `[https://… staand]`. Bij Google Drive moet het bestand gedeeld zijn met **Iedereen met de link**.
 - Foto's die je nergens plaatst, komen automatisch bij de andere foto's. De thumbnail (cover) staat enkel bovenaan, nooit nog eens in de lijst.
 
 Foto's worden bij het bouwen automatisch verkleind en omgezet naar webp.

@@ -10,7 +10,7 @@ export function getStaticPaths() {
 }
 
 const { design } = Astro.props as { design: Design };
-const { title, year, client, role, tags, thumbnail, color, blocks, sections, gallery } = design;
+const { title, year, client, role, tags, thumbnail, color, blocks, sections, gallery, extraClips } = design;
 // Dropdowns blijven bij elkaar; hun foto's komen er samen onder
 // De thumbnail staat al bovenaan, dus die niet nog eens in de lijst
 const introBlocks = blocks.filter((b) => !(b.type === 'photo' && b.photo.name === thumbnail.name));
@@ -79,9 +79,10 @@ const sectionPhotos = sections.flatMap((s) =>
 
       {/* Rechts (op gsm eronder): alle foto's, altijd zichtbaar */}
       {
-        (sectionPhotos.length > 0 || gallery.length > 0) && (
+        (sectionPhotos.length > 0 || gallery.length > 0 || extraClips.length > 0) && (
           <div class="case-photos">
             <Blocks blocks={sectionPhotos} />
+            <Blocks blocks={extraClips} />
             {gallery.map((photo) => (
               <Image src={photo.image} alt="" width={Math.min(1800, photo.image.width)} class="photo" />
             ))}
