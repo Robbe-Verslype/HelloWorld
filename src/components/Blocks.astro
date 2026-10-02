@@ -16,7 +16,7 @@ const { blocks } = Astro.props;
     ) : block.type === 'photo' ? (
       <Image src={block.photo.image} alt="" width={Math.min(1800, block.photo.image.width)} class="photo" />
     ) : block.type === 'video' ? (
-      <div class:list={['video', { vertical: block.vertical }]}>
+      <div class:list={['video', { vertical: block.vertical, insta: block.kind !== 'video', post: block.kind === 'post' }]}>
         <iframe
           src={block.embed}
           title="Video"
@@ -52,6 +52,16 @@ const { blocks } = Astro.props;
     aspect-ratio: 9 / 16;
     width: min(100%, 26rem);
     margin-inline: auto;
+  }
+  /* Instagram-embeds hebben een balk boven en onder de video */
+  .video.insta {
+    aspect-ratio: 400 / 860;
+    width: min(100%, 24rem);
+    margin-inline: auto;
+    background: #fff;
+  }
+  .video.insta.post {
+    aspect-ratio: 400 / 640;
   }
   .video iframe {
     position: absolute;

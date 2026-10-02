@@ -25,14 +25,16 @@ export type Block =
   | { type: 'heading'; text: string }
   | { type: 'paragraph'; lines: string[] }
   | { type: 'photo'; photo: Photo }
-  | { type: 'video'; embed: string; vertical: boolean };
+  | { type: 'video'; embed: string; vertical: boolean; kind: 'reel' | 'post' | 'video' };
 
 /**
  * Link naar een video (Google Drive, YouTube of Vimeo) → adres om in de pagina te tonen.
  * Geeft undefined terug als het geen herkende videolink is.
  */
 function videoEmbed(url: string): string | undefined {
-  let m = url.match(/drive\.google\.com\/(?:file\/d\/|open\?id=)([\w-]+)/);
+  let m = url.match(/instagram\.com\/(?:[\w.]+\/)?(reels?|p|tv)\/([\w-]+)/);
+  if (m) return `https://www.instagram.com/${m[1] === 'p' ? 'p' : 'reel'}/${m[2]}/embed`;
+  m = url.match(/drive\.google\.com\/(?:file\/d\/|open\?id=)([\w-]+)/);
   if (m) return `https://drive.google.com/file/d/${m[1]}/preview`;
   m = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([\w-]{6,})/);
   if (m) return `https://www.youtube-nocookie.com/embed/${m[1]}`;
@@ -165,8 +167,11 @@ function buildDesign(folder: string): Design | null {
     const videoRef = photoRef && photoRef[1].trim().match(/^(https?:\/\/\S+)(?:\s+(staand|liggend))?$/i);
     const embed = videoRef && videoEmbed(videoRef[1]);
     if (embed) {
-      const vertical = videoRef![2]?.toLowerCase() === 'staand' || /youtube\.com\/shorts\//.test(videoRef![1]);
-      target().push({ type: 'video', embed, vertical });
+      const url = videoRef![1];
+      const kind = /instagram\.com\/(?:[\w.]+\/)?p\//.test(url) ? 'post' : /instagram\.com\/(?:[\w.]+\/)?(reels?|tv)\//.test(url) ? 'reel' : 'video';
+      const vertical =
+        kind === 'reel' || videoRef![2]?.toLowerCase() === 'staand' || /youtube\.com\/shorts\//.test(url);
+      target().push({ type: 'video', embed, vertical, kind });
     } else if (photo) {
       target().push({ type: 'photo', photo });
       used.add(photo);
