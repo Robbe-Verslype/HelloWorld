@@ -2,7 +2,7 @@
 import { Image } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
 import Blocks from '../../components/Blocks.astro';
-import { getDesigns, type Design } from '../../lib/designs';
+import { getDesigns, isMedia, type Design } from '../../lib/designs';
 
 // Maakt automatisch één pagina per mapje
 export function getStaticPaths() {
@@ -15,7 +15,7 @@ const { title, year, client, role, tags, thumbnail, color, blocks, sections, gal
 // De thumbnail staat al bovenaan, dus die niet nog eens in de lijst
 const introBlocks = blocks.filter((b) => !(b.type === 'photo' && b.photo.name === thumbnail.name));
 const sectionPhotos = sections.flatMap((s) =>
-  s.blocks.filter((b) => b.type === 'photo' && b.photo.name !== thumbnail.name),
+  s.blocks.filter((b) => isMedia(b) && !(b.type === 'photo' && b.photo.name === thumbnail.name)),
 );
 ---
 
@@ -53,7 +53,7 @@ const sectionPhotos = sections.flatMap((s) =>
           sections.length > 0 && (
             <div class="sections">
               {sections.map((section) => {
-                const text = section.blocks.filter((b) => b.type !== 'photo');
+                const text = section.blocks.filter((b) => !isMedia(b));
                 return (
                   <div class="section">
                     {text.length > 0 ? (

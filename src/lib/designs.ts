@@ -24,7 +24,26 @@ export interface Photo {
 export type Block =
   | { type: 'heading'; text: string }
   | { type: 'paragraph'; lines: string[] }
-  | { type: 'photo'; photo: Photo };
+  | { type: 'photo'; photo: Photo }
+  | { type: 'video'; embed: string; vertical: boolean };
+
+/**
+ * Link naar een video (Google Drive, YouTube of Vimeo) → adres om in de pagina te tonen.
+ * Geeft undefined terug als het geen herkende videolink is.
+ */
+function videoEmbed(url: string): string | undefined {
+  let m = url.match(/drive\.google\.com\/(?:file\/d\/|open\?id=)([\w-]+)/);
+  if (m) return `https://drive.google.com/file/d/${m[1]}/preview`;
+  m = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([\w-]{6,})/);
+  if (m) return `https://www.youtube-nocookie.com/embed/${m[1]}`;
+  m = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+  if (m) return `https://player.vimeo.com/video/${m[1]}`;
+  return undefined;
+}
+
+/** Foto's en video's samen: alles wat in de beeldkolom komt. */
+export const isMedia = (b: Block): b is Extract<Block, { type: 'photo' | 'video' }> =>
+  b.type === 'photo' || b.type === 'video';
 
 export interface Section {
   title: string;
@@ -142,7 +161,13 @@ function buildDesign(folder: string): Design | null {
     }
     const photoRef = text.match(/^\[(.+)\]$/);
     const photo = photoRef && byName.get(photoRef[1].trim().toLowerCase());
-    if (photo) {
+    // [https://videolink] of [https://videolink staand] (voor reels / verticale video's)
+    const videoRef = photoRef && photoRef[1].trim().match(/^(https?:\/\/\S+)(?:\s+(staand|liggend))?$/i);
+    const embed = videoRef && videoEmbed(videoRef[1]);
+    if (embed) {
+      const vertical = videoRef![2]?.toLowerCase() === 'staand' || /youtube\.com\/shorts\//.test(videoRef![1]);
+      target().push({ type: 'video', embed, vertical });
+    } else if (photo) {
       target().push({ type: 'photo', photo });
       used.add(photo);
     } else {
