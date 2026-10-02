@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="nl-BE">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reserveren | Boem-Patat</title>
+  <meta name="description" content="Reserveer online je springkasteel. Kies je datum, zie meteen wat beschikbaar is en ken direct je totaalprijs.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏰</text></svg>">
+  <style>
+    .mobile-total { position: fixed; left: 0; right: 0; bottom: 0; background: #fff; box-shadow: 0 -4px 20px rgba(0,0,0,.1); padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); display: none; align-items: center; justify-content: space-between; gap: 12px; z-index: 60; }
+    .mobile-total b { font: 700 1.3rem var(--font-head); }
+    @media (max-width: 960px) { .mobile-total { display: flex; } .summary { position: static; } }
+    .group-title { margin: 22px 0 10px; font-size: 1.05rem; }
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="logo" href="index.html"><span class="logo-mark">🏰</span><span>Boem-Patat<small>Springkastelen</small></span></a>
+    <nav class="nav">
+      <a href="index.html#aanbod">Aanbod</a>
+      <a class="phone-pill" data-phone-link href="tel:+32476894358">📞 <span data-phone>0476 89 43 58</span></a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap booking">
+  <div>
+    <div class="progress" id="progress" aria-hidden="true"></div>
+    <div class="panel" id="panel"></div>
+  </div>
+
+  <aside class="panel summary" id="summary" aria-live="polite"></aside>
+</main>
+
+<div class="mobile-total" id="mobileTotal">
+  <div><small class="muted">Totaal</small><br><b id="mTotal">€ 0</b></div>
+  <button class="btn btn-primary" id="mNext">Volgende →</button>
+</div>
+
+<script src="assets/data.js"></script>
+<script src="assets/store.js"></script>
+<script>
+(function () {
+  let state = BP.load();
+  const S = state.settings;
+  const esc = BP.escapeHtml;
+  const params = new URLSearchParams(location.search);
+
+  document.querySelectorAll("[data-phone]").forEach((el) => el.textContent = state.business.phone);
+  document.querySelectorAll("[data-phone-link]").forEach((el) => el.href = "tel:" + state.business.phoneHref);
+
+  // ── Reservatie-object ──────────────────────────────────
+  const order = {
+    date: params.get("date") || "",
+    days: 1,
+    items: [],                 // [{id, qty}]
+    method: "",                // pickup | delivery
+    postcode: "",
+    surface: "",               // gras | verhard
+    customer: { name: "", email: "", phone: "", street: "", city: "", note: "" },
+    consent: false
+  };
+  const wanted = params.get("product");   // product gekozen op de homepage
+  if (wanted && state.products.some((p) => p.id === wanted)) order.items = [{ id: wanted, qty: 1 }];
+
+  const STEPS = ["date", "product", "method", "surface", "contact", "done"];
+  let step = 0;
+
+  const prod = (id) => state.products.find((p) => p.id === id);
+  const selected = () => order.items.filter((i) => i.qty > 0).map((i) => ({ ...i, p: prod(i.id) })).filter((i) => i.p);
+  const needsSurface = () => selected().some((i) => i.p.surface);
+  const pickupAllowed = () => selected().every((i) => i.p.pickup);
+  const qtyOf = (id) => (order.items.find((i) => i.id === id) || {}).qty || 0;
+
+  function setQty(id, q) {
+    const p = prod(id);
+    const max = BP.availableQty(state, p, order.date, order.days);
+    q = Math.max(0, Math.min(max, q));
+    const it = order.items.find((i) => i.id === id);
+    if (it) it.qty = q; else order.items.push({ id, qty: q });
+    order.items = order.items.filter((i) => i.qty > 0);
+    if (!pickupAllowed() && order.method === "pickup") order.method = "";
+  }
+
+  // Verwijder producten die niet (meer) beschikbaar zijn na datumwijziging
+  function pruneItems() {
+    const removed = [];
+    order.items = order.items.filter((i) => {
+      const p = prod(i.id);
+      const max = p ? BP.availableQty(state, p, order.date, order.days) : 0;
+      if (max <= 0) { if (p) removed.push(p.name); return false; }
+      i.qty = Math.min(i.qty, max);
+      return true;
+    });
+    return removed;
+  }
+
+  // ── Validatie per stap ─────────────────────────────────
+  function stepValid(name) {
+    switch (name) {
+      case "date": return !!order.date && order.date >= BP.today() && !BP.isDateBlocked(state, order.date, order.days);
+      case "product": return selected().length > 0;
+      case "method":
+        if (order.method === "pickup") return pickupAllowed();
+        return order.method === "delivery" && /^\d{4}$/.test(order.postcode);
+      case "surface": return !needsSurface() || !!order.surface;
+      case "contact": {
+        const c = order.customer;
+        const addrOk = order.method !== "delivery" || (c.street.trim() && c.city.trim());
+        return c.name.trim() && /^\S+@\S+\.\S+$/.test(c.email) && c.phone.replace(/\D/g, "").length >= 9 && addrOk && order.consent;
+      }
+    }
+    return true;
+  }
+
+  function go(delta) {
+    let i = step + delta;
+    if (STEPS[i] === "surface" && !needsSurface()) { order.surface = ""; i += delta; }
+    step = Math.max(0, Math.min(STEPS.length - 1, i));
+    render();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  // ── Stappen renderen ───────────────────────────────────
+  const panel = document.getElementById("panel");
+  let notice = "";
+
+  function navButtons(nextLabel = "Volgende →") {
+    const name = STEPS[step];
+    return `<div class="nav-btns">
+      ${step > 0 ? `<button class="btn btn-ghost" data-back>← Terug</button>` : `<span></span>`}
+      <button class="btn btn-primary btn-lg" data-next ${stepValid(name) ? "" : "disabled"}>${nextLabel}</button>
+    </div>`;
+  }
+
+  const views = {
+    date() {
+      const blocked = order.date && BP.isDateBlocked(state, order.date, order.days);
+      return `<span class="step-label">Stap 1 van 5</span>
+        <h2>Wanneer is je feest?</h2>
+        ${selected().length ? `<p class="muted" style="margin-top:-6px">Je keuze: <b>${selected().map((i) => esc(i.p.name)).join(", ")}</b>. We kijken meteen of die vrij is.</p>` : ""}
+        <div class="field">
+          <label for="date">Datum</label>
+          <input type="date" id="date" min="${BP.today()}" value="${order.date}">
+          ${blocked ? `<div class="error">Op deze datum verhuren we helaas niet. Kies een andere dag.</div>` : ""}
+        </div>
+        <label style="margin-bottom:8px">Hoe lang wil je huren?</label>
+        <div class="choices">
+          <div class="choice"><input type="radio" name="days" id="d1" value="1" ${order.days === 1 ? "checked" : ""}><label for="d1"><b>1 dag</b><span class="muted">Levering 8 – 12u, ophaling 18 – 23u</span></label></div>
+          <div class="choice"><input type="radio" name="days" id="d2" value="2" ${order.days === 2 ? "checked" : ""}><label for="d2"><b>Weekend / 2 dagen</b><span class="muted">Voordeliger dan 2 losse dagen</span></label></div>
+        </div>
+        ${navButtons("Toon wat vrij is →")}`;
+    },
+
+    product() {
+      const groups = state.categories.map((c) => {
+        const list = state.products.filter((p) => p.type === c.id && p.active !== false)
+          .map((p) => ({ p, max: BP.availableQty(state, p, order.date, order.days) }))
+          .filter((x) => x.max > 0 || qtyOf(x.p.id) > 0);
+        if (!list.length) return "";
+        return `<h3 class="group-title">${c.icon} ${c.label}</h3>` + list.map(({ p, max }) => {
+          const q = qtyOf(p.id);
+          const unit = order.days === 2 ? p.price2 : p.price;
+          const multi = p.stock > 1;
+          const control = multi
+            ? `<div class="qty"><button data-dec="${p.id}" aria-label="Minder">−</button><span>${q}</span><button data-inc="${p.id}" aria-label="Meer" ${q >= max ? "disabled" : ""}>+</button></div>`
+            : `<button class="btn ${q ? "btn-dark" : "btn-primary"} btn-sm" data-toggle="${p.id}">${q ? "✓ Gekozen" : "Kies"}</button>`;
+          return `<div class="pick ${q ? "sel" : ""}">
+            ${BP.imgTag(p)}
+            <div><h4>${esc(p.name)}</h4>
+              <div class="muted">${BP.euro(unit)}${multi ? " per stuk" : ""}${p.age ? " · " + esc(p.age) : ""}${multi ? ` · nog ${max} vrij` : ""}</div>
+              ${!p.pickup ? `<div class="muted">🚚 Enkel met levering</div>` : ""}
+            </div>
+            ${control}
+          </div>`;
+        }).join("");
+      }).join("");
+
+      return `<span class="step-label">Stap 2 van 5</span>
+        <h2>Wat wil je huren?</h2>
+        <p class="muted" style="margin-top:-6px">Dit is vrij op <b>${BP.fmtPeriod(order.date, order.days)}</b>. <a href="#" data-goto="0">Andere datum</a></p>
+        ${notice ? `<div class="warnbox">${notice}</div>` : ""}
+        ${groups || `<div class="warnbox">Op deze datum is helaas alles verhuurd. Probeer een andere datum of bel ons.</div>`}
+        ${navButtons()}`;
+    },
+
+    method() {
+      const pu = pickupAllowed();
+      const km = BP.kmFor(state, order.postcode);
+      const validPc = /^\d{4}$/.test(order.postcode);
+      let pcInfo = "";
+      if (order.method === "delivery" && validPc) {
+        pcInfo = km == null
+          ? `<div class="warnbox" style="margin-top:10px">We kennen de afstand tot ${esc(order.postcode)} nog niet. Je kan gewoon verder reserveren. We laten je de leverprijs weten vóór we bevestigen.</div>`
+          : `<div class="info" style="margin-top:10px">± ${km} km vanaf Wiekevorst → levering &amp; ophaling <b>${BP.euro(BP.deliveryCost(S, km))}</b></div>`;
+      }
+      return `<span class="step-label">Stap 3 van 5</span>
+        <h2>Afhalen of laten leveren?</h2>
+        <div class="choices">
+          <div class="choice"><input type="radio" name="method" id="m1" value="pickup" ${order.method === "pickup" ? "checked" : ""} ${pu ? "" : "disabled"}>
+            <label for="m1"><b>Zelf afhalen</b><span class="muted">${pu ? "In Wiekevorst · geen extra kosten" : "Niet mogelijk voor je keuze (enkel levering)"}</span></label></div>
+          <div class="choice"><input type="radio" name="method" id="m2" value="delivery" ${order.method === "delivery" ? "checked" : ""}>
+            <label for="m2"><b>Levering + opbouw</b><span class="muted">${BP.euro(S.deliveryBase)} tot ${S.deliveryFreeKm} km, daarna ${BP.euro(S.deliveryPerKm)}/km</span></label></div>
+        </div>
+        ${order.method === "delivery" ? `<div class="field" style="margin-top:16px">
+          <label for="pc">Postcode van het feest</label>
+          <input id="pc" inputmode="numeric" maxlength="4" placeholder="bv. 2220" value="${esc(order.postcode)}" style="max-width:200px">
+          ${pcInfo}
+        </div>` : ""}
+        ${order.method === "pickup" ? `<div class="info" style="margin-top:16px">Afhaaladres: ${esc(state.business.street)}, ${esc(state.business.city)}. We spreken het uur af in de bevestigingsmail.</div>` : ""}
+        ${navButtons()}`;
+    },
+
+    surface() {
+      const units = selected().filter((i) => i.p.surface).reduce((n, i) => n + i.qty * (i.p.parts || 1), 0);
+      return `<span class="step-label">Stap 4 van 5</span>
+        <h2>Waar komt het te staan?</h2>
+        <p class="muted" style="margin-top:-6px">Zo kunnen we het veilig opstellen.</p>
+        <div class="choices">
+          <div class="choice"><input type="radio" name="surface" id="s1" value="gras" ${order.surface === "gras" ? "checked" : ""}>
+            <label for="s1"><b>🌱 Gras</b><span class="muted">Geen extra kosten</span></label></div>
+          <div class="choice"><input type="radio" name="surface" id="s2" value="verhard" ${order.surface === "verhard" ? "checked" : ""}>
+            <label for="s2"><b>🧱 Verharde ondergrond</b><span class="muted">Klinkers, beton, … · + ${BP.euro(S.hardSurface * units)}${units > 1 ? ` (${units} × ${BP.euro(S.hardSurface)})` : ""}</span></label></div>
+        </div>
+        <p class="muted" style="font-size:.9rem;margin-top:14px">Voorzie een stopcontact van 220V / 16A en een vrije doorgang van minstens 1 meter breed.</p>
+        ${navButtons()}`;
+    },
+
+    contact() {
+      const c = order.customer;
+      const del = order.method === "delivery";
+      return `<span class="step-label">Stap 5 van 5</span>
+        <h2>Je gegevens</h2>
+        <p class="muted" style="margin-top:-6px">Bijna klaar! Controleer je totaalprijs rechts${window.innerWidth < 960 ? " (onderaan)" : ""}.</p>
+        <div class="field"><label for="name">Naam</label><input id="name" autocomplete="name" value="${esc(c.name)}"></div>
+        <div class="row2">
+          <div class="field"><label for="email">E-mail</label><input id="email" type="email" autocomplete="email" value="${esc(c.email)}"></div>
+          <div class="field"><label for="phone">GSM</label><input id="phone" type="tel" autocomplete="tel" value="${esc(c.phone)}"></div>
+        </div>
+        ${del ? `<div class="row2">
+          <div class="field"><label for="street">Leveradres (straat + nr)</label><input id="street" autocomplete="street-address" value="${esc(c.street)}"></div>
+          <div class="field"><label for="city">Postcode + gemeente</label><input id="city" autocomplete="address-level2" value="${esc(c.city || order.postcode + " ")}"></div>
+        </div>` : ""}
+        <div class="field"><label for="note">Opmerking <small>(optioneel)</small></label><textarea id="note" rows="3" placeholder="bv. verjaardag, bereikbaarheid, gewenst afhaaluur…">${esc(c.note)}</textarea></div>
+        <label style="font-weight:600;display:flex;gap:10px;align-items:flex-start">
+          <input type="checkbox" id="consent" ${order.consent ? "checked" : ""} style="width:auto;margin-top:5px">
+          <span>Ik ga akkoord met de <a href="index.html#faq" target="_blank">voorwaarden</a> en de <a href="privacy.html" target="_blank">privacyverklaring</a>. Mijn gegevens worden enkel gebruikt voor deze reservatie.</span>
+        </label>
+        ${navButtons("Verstuur reservatie ✓")}`;
+    },
+
+    done() {
+      const r = state.reservations[state.reservations.length - 1];
+      return `<div class="okbox">
+        <div class="big">🎉</div>
+        <h2>Bedankt, ${esc(r.customer.name.split(" ")[0])}!</h2>
+        <p>Je reservatie <b>${esc(r.id)}</b> is goed ontvangen.</p>
+        <div class="info" style="text-align:left;margin:20px 0">
+          <b>Wat nu?</b><br>
+          1. We kijken je aanvraag zo snel mogelijk na.<br>
+          2. Je krijgt een bevestigingsmail op <b>${esc(r.customer.email)}</b> met de betaalgegevens.<br>
+          3. Na betaling van het voorschot (${BP.euro(r.deposit)}) is je reservatie definitief.
+        </div>
+        <a class="btn btn-ghost" href="index.html">Terug naar de homepage</a>
+      </div>`;
+    }
+  };
+
+  // ── Samenvatting ───────────────────────────────────────
+  function renderSummary() {
+    const sum = document.getElementById("summary");
+    const q = BP.quote(state, order);
+    const items = selected();
+    document.getElementById("mTotal").textContent = BP.euro(q.total) + (q.deliveryUnknown ? " + levering" : "");
+    sum.innerHTML = `<h3>Jouw reservatie</h3>
+      ${order.date ? `<div class="sum-line"><span>📅 ${BP.fmtPeriod(order.date, order.days)}</span></div>` : `<p class="muted">Kies eerst een datum.</p>`}
+      ${items.length ? q.lines.map((l) => `<div class="sum-line"><span>${esc(l.label)}${l.note ? `<small>${esc(l.note)}</small>` : ""}</span><span>${l.amount == null ? "?" : BP.euro(l.amount)}</span></div>`).join("") : ""}
+      <div class="sum-line sum-total"><span>Totaal</span><span>${BP.euro(q.total)}${q.deliveryUnknown ? "*" : ""}</span></div>
+      ${q.deliveryUnknown ? `<small class="muted">* leverprijs volgt</small>` : ""}
+      ${items.length ? `<div class="sum-deposit">Voorschot na bevestiging: <b>${BP.euro(q.deposit)}</b><br>Rest (${BP.euro(q.rest)}) betaal je bij ${order.method === "pickup" ? "afhaling" : "levering"}.</div>` : ""}
+      <ul class="trust"><li>✓ Nog niets te betalen bij het versturen</li><li>✓ Gekeurde, propere springkastelen</li><li>✓ Vragen? Bel <a href="tel:${state.business.phoneHref}">${esc(state.business.phone)}</a></li></ul>`;
+  }
+
+  function render() {
+    const name = STEPS[step];
+    const visible = STEPS.slice(0, 5).filter((s) => s !== "surface" || needsSurface());
+    document.getElementById("progress").innerHTML = visible.map((s) => `<span class="${STEPS.indexOf(s) <= step ? "on" : ""}"></span>`).join("");
+    panel.innerHTML = views[name]();
+    renderSummary();
+    const mNext = document.getElementById("mNext");
+    document.getElementById("mobileTotal").style.display = name === "done" ? "none" : "";
+    mNext.textContent = name === "contact" ? "Verstuur ✓" : "Volgende →";
+    mNext.disabled = !stepValid(name);
+  }
+
+  // Alleen de knoppen bijwerken (zonder te her-renderen → geen focusverlies bij typen)
+  function refreshButtons() {
+    const ok = stepValid(STEPS[step]);
+    const nb = panel.querySelector("[data-next]");
+    if (nb) nb.disabled = !ok;
+    document.getElementById("mNext").disabled = !ok;
+    renderSummary();
+  }
+
+  function next() {
+    const name = STEPS[step];
+    if (!stepValid(name)) return;
+    if (name === "date") {
+      const removed = pruneItems();
+      notice = removed.length ? `<b>${removed.map(esc).join(", ")}</b> is helaas al verhuurd op deze datum. Kies hieronder een alternatief.` : "";
+    } else notice = "";
+    if (name === "contact") return submit();
+    go(1);
+  }
+
+  function submit() {
+    state = BP.load(); // laatste stand ophalen → geen dubbele boekingen
+    const clash = selected().find((i) => BP.availableQty(state, i.p, order.date, order.days) < i.qty);
+    if (clash) {
+      alert(`${clash.p.name} werd net door iemand anders gereserveerd. Kies een alternatief.`);
+      pruneItems(); step = 1; return render();
+    }
+    const q = BP.quote(state, order);
+    const nr = 1001 + state.reservations.length;
+    state.reservations.push({
+      id: "BP-" + nr, created: BP.today(), status: "pending",
+      date: order.date, days: order.days,
+      items: order.items.map((i) => ({ id: i.id, qty: i.qty })),
+      method: order.method, postcode: order.postcode, surface: order.surface || "",
+      total: q.total, deposit: q.deposit, deliveryUnknown: q.deliveryUnknown,
+      customer: { ...order.customer }
+    });
+    BP.save(state);
+    step = STEPS.indexOf("done");
+    render();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  // ── Events ─────────────────────────────────────────────
+  panel.addEventListener("click", (e) => {
+    const t = e.target;
+    if (t.closest("[data-next]")) return next();
+    if (t.closest("[data-back]")) { notice = ""; return go(-1); }
+    const g = t.closest("[data-goto]");
+    if (g) { e.preventDefault(); step = +g.dataset.goto; return render(); }
+    const tg = t.closest("[data-toggle]");
+    if (tg) { setQty(tg.dataset.toggle, qtyOf(tg.dataset.toggle) ? 0 : 1); return render(); }
+    const inc = t.closest("[data-inc]");
+    if (inc) { setQty(inc.dataset.inc, qtyOf(inc.dataset.inc) + 1); return render(); }
+    const dec = t.closest("[data-dec]");
+    if (dec) { setQty(dec.dataset.dec, qtyOf(dec.dataset.dec) - 1); return render(); }
+  });
+
+  panel.addEventListener("change", (e) => {
+    const t = e.target;
+    if (t.name === "days") { order.days = +t.value; return render(); }
+    if (t.id === "date") { order.date = t.value; return render(); }
+    if (t.name === "method") { order.method = t.value; return render(); }
+    if (t.name === "surface") { order.surface = t.value; return render(); }
+    if (t.id === "consent") { order.consent = t.checked; return refreshButtons(); }
+  });
+
+  panel.addEventListener("input", (e) => {
+    const t = e.target;
+    if (t.id === "pc") {
+      t.value = t.value.replace(/\D/g, "").slice(0, 4);
+      const was = order.postcode;
+      order.postcode = t.value;
+      if (t.value.length === 4 || was.length === 4) { render(); const pc = document.getElementById("pc"); pc.focus(); pc.setSelectionRange(9, 9); }
+      return refreshButtons();
+    }
+    if (["name", "email", "phone", "street", "city", "note"].includes(t.id)) {
+      order.customer[t.id] = t.value;
+      return refreshButtons();
+    }
+  });
+
+  document.getElementById("mNext").addEventListener("click", next);
+  panel.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target.tagName === "INPUT" && e.target.type !== "checkbox") { e.preventDefault(); next(); } });
+
+  // Datum meegegeven vanaf de homepage → meteen naar de productkeuze
+  if (stepValid("date")) { next(); } else { if (order.date && order.date < BP.today()) order.date = ""; render(); }
+})();
+</script>
+</body>
+</html>

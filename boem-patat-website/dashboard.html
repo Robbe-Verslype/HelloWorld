@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="nl-BE">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Dashboard | Boem-Patat</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏰</text></svg>">
+  <style>
+    body { font-size: 16px; }
+    .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+    .toolbar select { width: auto; }
+    .agenda-day { background: #fff; border-radius: 14px; box-shadow: var(--shadow); padding: 14px 16px; margin-bottom: 10px; }
+    .agenda-day h4 { margin: 0 0 6px; }
+    .agenda-item { display: flex; gap: 10px; align-items: center; padding: 4px 0; flex-wrap: wrap; }
+    .settings { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+    .chip { display: inline-flex; gap: 6px; align-items: center; background: var(--green-100); border-radius: 999px; padding: .2em .4em .2em .8em; margin: 0 6px 6px 0; font-weight: 700; font-size: .88rem; }
+    .chip button { border: 0; background: #fff; border-radius: 50%; width: 22px; height: 22px; cursor: pointer; }
+    .prod-table td { white-space: nowrap; }
+    .prod-table input[type=number] { width: 80px; }
+    .prod-table input[type=text] { min-width: 120px; }
+    .prod-table input[type=checkbox] { width: auto; }
+    .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--green-900); color: #fff; padding: 10px 18px; border-radius: 999px; font-weight: 700; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 100; }
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+<div class="concept-bar">Concept-dashboard · gegevens worden enkel in deze browser bewaard · in productie komt dit achter een login</div>
+<header class="topbar">
+  <div class="wrap">
+    <a class="logo" href="index.html"><span class="logo-mark">🏰</span><span>Boem-Patat<small>Beheer</small></span></a>
+    <nav class="nav"><a href="index.html" target="_blank">Bekijk website ↗</a></nav>
+  </div>
+</header>
+
+<main class="wrap dash">
+  <div class="dash-tabs" id="dashTabs">
+    <button class="tab" data-tab="res" aria-pressed="true">📥 Reservaties</button>
+    <button class="tab" data-tab="agenda" aria-pressed="false">📅 Planning</button>
+    <button class="tab" data-tab="prod" aria-pressed="false">🏰 Producten &amp; prijzen</button>
+    <button class="tab" data-tab="set" aria-pressed="false">⚙️ Instellingen</button>
+  </div>
+  <div id="view"></div>
+</main>
+
+<dialog id="dlg"><div class="panel" id="dlgBody"></div></dialog>
+<div class="toast" id="toast"></div>
+
+<script src="assets/data.js"></script>
+<script src="assets/store.js"></script>
+<script>
+(function () {
+  let state = BP.load();
+  const esc = BP.escapeHtml;
+  let tab = "res";
+  let filter = "pending";
+
+  const prod = (id) => state.products.find((p) => p.id === id);
+  const statusLabel = { pending: "In afwachting", confirmed: "Bevestigd", refused: "Geweigerd" };
+  const itemsTxt = (r) => r.items.map((i) => `${i.qty > 1 ? i.qty + "× " : ""}${prod(i.id) ? prod(i.id).name : i.id}`).join(", ");
+
+  function persist(msg) { BP.save(state); if (msg) toast(msg); }
+  function toast(msg) { const t = document.getElementById("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("show"), 1800); }
+
+  // ── Reservaties ────────────────────────────────────────
+  function viewRes() {
+    const rs = state.reservations;
+    const pending = rs.filter((r) => r.status === "pending").length;
+    const upcoming = rs.filter((r) => r.status === "confirmed" && r.date >= BP.today()).length;
+    const omzet = rs.filter((r) => r.status === "confirmed").reduce((n, r) => n + (r.total || 0), 0);
+    const list = rs.filter((r) => filter === "all" || r.status === filter).sort((a, b) => a.date.localeCompare(b.date));
+
+    return `<div class="stats">
+        <div class="stat"><span class="muted">Te behandelen</span><b>${pending}</b></div>
+        <div class="stat"><span class="muted">Komende verhuringen</span><b>${upcoming}</b></div>
+        <div class="stat"><span class="muted">Omzet bevestigd</span><b>${BP.euro(omzet)}</b></div>
+        <div class="stat"><span class="muted">Totaal aanvragen</span><b>${rs.length}</b></div>
+      </div>
+      <div class="toolbar">
+        <label for="filter" style="font-weight:700">Toon:</label>
+        <select id="filter">
+          ${["pending", "confirmed", "refused", "all"].map((f) => `<option value="${f}" ${f === filter ? "selected" : ""}>${f === "all" ? "Alle" : statusLabel[f]}</option>`).join("")}
+        </select>
+      </div>
+      <div class="table-scroll"><table>
+        <thead><tr><th>Nr</th><th>Datum</th><th>Klant</th><th>Producten</th><th>Afhalen / levering</th><th>Totaal</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+        ${list.length ? list.map((r) => `<tr>
+          <td><b>${esc(r.id)}</b></td>
+          <td>${BP.fmtPeriod(r.date, r.days)}</td>
+          <td>${esc(r.customer.name)}<br><small class="muted">${esc(r.customer.phone)}<br>${esc(r.customer.email)}</small></td>
+          <td>${esc(itemsTxt(r))}${r.customer.note ? `<br><small class="muted">💬 ${esc(r.customer.note)}</small>` : ""}</td>
+          <td>${r.method === "pickup" ? "Afhalen" : `Levering ${esc(r.postcode)}<br><small class="muted">${esc(r.customer.street)} ${esc(r.customer.city)}</small>`}${r.surface ? `<br><small class="muted">Ondergrond: ${esc(r.surface)}</small>` : ""}</td>
+          <td><b>${BP.euro(r.total || 0)}</b>${r.deliveryUnknown ? `<br><span class="tag warn">leverprijs?</span>` : ""}<br><small class="muted">voorschot ${BP.euro(r.deposit || 0)}</small></td>
+          <td><span class="status ${r.status}">${statusLabel[r.status]}</span></td>
+          <td><div class="actions">
+            ${r.status !== "confirmed" ? `<button class="btn btn-primary btn-sm" data-confirm="${r.id}">Bevestigen</button>` : ""}
+            ${r.status !== "refused" ? `<button class="btn btn-ghost btn-sm" data-refuse="${r.id}">Weigeren</button>` : ""}
+            <button class="btn btn-ghost btn-sm" data-edit="${r.id}">Aanpassen</button>
+          </div></td>
+        </tr>`).join("") : `<tr><td colspan="8" class="muted center">Geen reservaties in deze lijst.</td></tr>`}
+        </tbody>
+      </table></div>`;
+  }
+
+  function confirmMail(r) {
+    const b = state.business;
+    return `Onderwerp: Bevestiging reservatie ${r.id} – Boem-Patat
+
+Dag ${r.customer.name.split(" ")[0]},
+
+Goed nieuws: je reservatie is bevestigd! 🎉
+
+📅 ${BP.fmtPeriod(r.date, r.days)}
+🏰 ${itemsTxt(r)}
+🚚 ${r.method === "pickup" ? `Afhalen in ${b.street}, ${b.city}` : `Levering op ${r.customer.street}, ${r.customer.city}`}
+💶 Totaal: ${BP.euro(r.total)}
+
+Gelieve het voorschot van ${BP.euro(r.deposit)} binnen 5 dagen over te schrijven
+op rekening BE00 0000 0000 0000 met vermelding "${r.id}".
+Het resterende bedrag (${BP.euro(r.total - r.deposit)}) betaal je bij ${r.method === "pickup" ? "afhaling" : "levering"}.
+
+Voorzie een stopcontact van 220V/16A en een vrije doorgang van min. 1 meter.
+
+Tot dan!
+${b.owners} – ${b.name}
+${b.phone} · ${b.email}`;
+  }
+
+  function openConfirm(id) {
+    const r = state.reservations.find((x) => x.id === id);
+    // Controle dubbele boeking vóór bevestigen
+    const clash = r.items.find((i) => prod(i.id) && BP.availableQty(state, prod(i.id), r.date, r.days, r.id) < i.qty);
+    dlg(`<h2>Reservatie ${esc(r.id)} bevestigen</h2>
+      ${clash ? `<div class="warnbox">⚠️ ${esc(prod(clash.id).name)} is op deze datum al bevestigd voor iemand anders. Pas de reservatie eerst aan.</div>` : ""}
+      ${r.deliveryUnknown ? `<div class="warnbox">⚠️ De leverprijs voor postcode ${esc(r.postcode)} is niet gekend. Vul ze eerst in via "Aanpassen".</div>` : ""}
+      <p class="muted">Deze mail wordt automatisch naar <b>${esc(r.customer.email)}</b> verstuurd:</p>
+      <div class="mail">${esc(confirmMail(r))}</div>
+      <div class="nav-btns">
+        <button class="btn btn-ghost" data-close>Annuleren</button>
+        <button class="btn btn-primary" data-do-confirm="${r.id}" ${clash ? "disabled" : ""}>Bevestig &amp; verstuur mail</button>
+      </div>`);
+  }
+
+  function openEdit(id) {
+    const r = state.reservations.find((x) => x.id === id);
+    dlg(`<h2>Reservatie ${esc(r.id)} aanpassen</h2>
+      <div class="row2">
+        <div class="field"><label>Datum</label><input type="date" id="eDate" value="${r.date}"></div>
+        <div class="field"><label>Duur</label><select id="eDays"><option value="1" ${r.days === 1 ? "selected" : ""}>1 dag</option><option value="2" ${r.days === 2 ? "selected" : ""}>Weekend / 2 dagen</option></select></div>
+      </div>
+      <div class="field"><label>Producten</label>
+        ${state.products.filter((p) => p.active !== false).map((p) => {
+          const q = (r.items.find((i) => i.id === p.id) || {}).qty || 0;
+          return `<div style="display:flex;gap:8px;align-items:center;margin-bottom:4px"><input type="number" min="0" max="${p.stock}" value="${q}" data-eitem="${p.id}" style="width:70px"> ${esc(p.name)}</div>`;
+        }).join("")}
+      </div>
+      <div class="row2">
+        <div class="field"><label>Afhalen / levering</label><select id="eMethod"><option value="pickup" ${r.method === "pickup" ? "selected" : ""}>Afhalen</option><option value="delivery" ${r.method === "delivery" ? "selected" : ""}>Levering</option></select></div>
+        <div class="field"><label>Postcode</label><input id="ePc" value="${esc(r.postcode)}"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Ondergrond</label><select id="eSurface"><option value="">–</option><option value="gras" ${r.surface === "gras" ? "selected" : ""}>Gras</option><option value="verhard" ${r.surface === "verhard" ? "selected" : ""}>Verhard</option></select></div>
+        <div class="field"><label>Totaalprijs (€)</label><input type="number" step="0.01" id="eTotal" value="${r.total}"><small>Leeg laten = automatisch herberekenen</small></div>
+      </div>
+      <div class="field"><label>Opmerking</label><textarea id="eNote" rows="2">${esc(r.customer.note)}</textarea></div>
+      <div id="eErr"></div>
+      <div class="nav-btns">
+        <button class="btn btn-ghost" data-close>Annuleren</button>
+        <button class="btn btn-ghost" data-recalc="${r.id}">Herbereken prijs</button>
+        <button class="btn btn-primary" data-save-edit="${r.id}">Opslaan</button>
+      </div>`);
+  }
+
+  function readEdit(r) {
+    const $ = (id) => document.getElementById(id);
+    const items = [...document.querySelectorAll("[data-eitem]")].map((el) => ({ id: el.dataset.eitem, qty: +el.value || 0 })).filter((i) => i.qty > 0);
+    return { date: $("eDate").value, days: +$("eDays").value, items, method: $("eMethod").value, postcode: $("ePc").value.trim(), surface: $("eSurface").value, note: $("eNote").value, total: $("eTotal").value };
+  }
+
+  // ── Planning ───────────────────────────────────────────
+  function viewAgenda() {
+    const days = {};
+    for (const r of state.reservations) {
+      if (r.status === "refused") continue;
+      for (const d of BP.range(r.date, r.days)) if (d >= BP.today()) (days[d] = days[d] || []).push(r);
+    }
+    const keys = Object.keys(days).sort();
+    if (!keys.length) return `<p class="muted">Nog geen komende verhuringen.</p>`;
+    return `<p class="muted">Alle komende verhuringen per dag (in afwachting + bevestigd).</p>` + keys.map((d) => `<div class="agenda-day">
+      <h4>${BP.fmtDate(d)}</h4>
+      ${days[d].map((r) => `<div class="agenda-item"><span class="status ${r.status}">${statusLabel[r.status]}</span>
+        <b>${esc(itemsTxt(r))}</b> <span class="muted">· ${esc(r.customer.name)} · ${r.method === "pickup" ? "afhalen" : "levering " + esc(r.postcode)}${r.surface === "verhard" ? " · verhard" : ""}</span></div>`).join("")}
+    </div>`).join("");
+  }
+
+  // ── Producten ──────────────────────────────────────────
+  function viewProd() {
+    const cats = Object.fromEntries(state.categories.map((c) => [c.id, c.label]));
+    return `<p class="muted">Wijzigingen worden meteen opgeslagen en zijn direct zichtbaar op de website. Basisprijs = afhaalprijs.</p>
+      <div class="table-scroll"><table class="prod-table">
+      <thead><tr><th>Online</th><th>Naam</th><th>Type</th><th>Prijs/dag</th><th>Weekend</th><th>Afhalen</th><th>Delen</th><th>Voorraad</th><th>Leeftijd</th><th>Afmetingen</th><th>Gewicht</th><th>Vrije ruimte</th><th>Foto</th></tr></thead>
+      <tbody>${state.products.map((p) => `<tr data-pid="${p.id}">
+        <td><input type="checkbox" data-f="active" ${p.active !== false ? "checked" : ""}></td>
+        <td><input type="text" data-f="name" value="${esc(p.name)}"></td>
+        <td><select data-f="type">${Object.entries(cats).map(([k, v]) => `<option value="${k}" ${k === p.type ? "selected" : ""}>${v}</option>`).join("")}</select></td>
+        <td><input type="number" step="0.5" min="0" data-f="price" value="${p.price}"></td>
+        <td><input type="number" step="0.5" min="0" data-f="price2" value="${p.price2 ?? ""}" placeholder="n.v.t."></td>
+        <td><input type="checkbox" data-f="pickup" ${p.pickup ? "checked" : ""}></td>
+        <td><input type="number" min="1" data-f="parts" value="${p.parts || 1}"></td>
+        <td><input type="number" min="0" data-f="stock" value="${p.stock}"></td>
+        <td><input type="text" data-f="age" value="${esc(p.age || "")}"></td>
+        <td><input type="text" data-f="size" value="${esc(p.size || "")}" placeholder="bv. 5 × 4 × 3,5 m"></td>
+        <td><input type="text" data-f="weight" value="${esc(p.weight || "")}" placeholder="bv. 120 kg"></td>
+        <td><input type="text" data-f="space" value="${esc(p.space || "")}" placeholder="bv. 7 × 6 m"></td>
+        <td><input type="text" data-f="img" value="${esc(p.img || "")}"></td>
+      </tr>`).join("")}</tbody></table></div>`;
+  }
+
+  // ── Instellingen ───────────────────────────────────────
+  function viewSet() {
+    const s = state.settings, b = state.business;
+    const num = (k, label, help) => `<div class="field"><label>${label}</label><input type="number" step="0.5" min="0" data-s="${k}" value="${s[k]}">${help ? `<small>${help}</small>` : ""}</div>`;
+    return `<div class="settings">
+      <div class="panel"><h3>💶 Prijsregels</h3>
+        ${num("deliveryBase", "Levering basisprijs (€)", "Inclusief ophaling")}
+        ${num("deliveryFreeKm", "Inbegrepen km")}
+        ${num("deliveryPerKm", "Prijs per extra km (€)")}
+        ${num("hardSurface", "Verharde ondergrond (€)", "Per springkasteel of per deel stormbaan")}
+        ${num("depositPct", "Voorschot (%)")}
+        ${num("depositMin", "Minimum voorschot (€)")}
+      </div>
+      <div class="panel"><h3>⛔ Geblokkeerde dagen</h3>
+        <p class="muted">Op deze dagen kan niemand online reserveren (bv. vakantie).</p>
+        <div class="toolbar"><input type="date" id="blockDate" min="${BP.today()}" style="width:auto"><button class="btn btn-primary btn-sm" id="addBlock">Blokkeren</button></div>
+        <div>${s.blockedDates.length ? s.blockedDates.sort().map((d) => `<span class="chip">${BP.fmtDate(d, false)} <button data-unblock="${d}" aria-label="Verwijder">×</button></span>`).join("") : `<span class="muted">Geen geblokkeerde dagen.</span>`}</div>
+      </div>
+      <div class="panel"><h3>📍 Afstanden per postcode</h3>
+        <p class="muted">Eén per lijn: <code>postcode=km</code>. Onbekende postcodes → "leverprijs volgt".</p>
+        <textarea id="postcodes" rows="10">${Object.entries(state.postcodes).map(([k, v]) => `${k}=${v}`).join("\n")}</textarea>
+        <button class="btn btn-primary btn-sm" id="savePc" style="margin-top:8px">Opslaan</button>
+      </div>
+      <div class="panel"><h3>📞 Contactgegevens</h3>
+        ${[["owners", "Namen"], ["phone", "Telefoon (weergave)"], ["phoneHref", "Telefoon (link, +32…)"], ["email", "E-mail"], ["street", "Straat"], ["city", "Postcode + gemeente"], ["vat", "BTW-nummer"]].map(([k, l]) => `<div class="field"><label>${l}</label><input data-b="${k}" value="${esc(b[k])}"></div>`).join("")}
+      </div>
+      <div class="panel"><h3>🧪 Demo</h3>
+        <p class="muted">Zet alle producten, prijzen en reservaties terug naar de standaardwaarden.</p>
+        <button class="btn btn-ghost" id="reset">Demo-data herstellen</button>
+      </div>
+    </div>`;
+  }
+
+  // ── Render & events ────────────────────────────────────
+  const view = document.getElementById("view");
+  function render() {
+    document.querySelectorAll("#dashTabs .tab").forEach((t) => t.setAttribute("aria-pressed", t.dataset.tab === tab));
+    view.innerHTML = { res: viewRes, agenda: viewAgenda, prod: viewProd, set: viewSet }[tab]();
+  }
+
+  const dialog = document.getElementById("dlg");
+  function dlg(html) { document.getElementById("dlgBody").innerHTML = html; dialog.showModal(); }
+
+  document.getElementById("dashTabs").addEventListener("click", (e) => {
+    const t = e.target.closest("[data-tab]"); if (!t) return; tab = t.dataset.tab; render();
+  });
+
+  view.addEventListener("click", (e) => {
+    const t = e.target;
+    const c = t.closest("[data-confirm]"); if (c) return openConfirm(c.dataset.confirm);
+    const ed = t.closest("[data-edit]"); if (ed) return openEdit(ed.dataset.edit);
+    const rf = t.closest("[data-refuse]");
+    if (rf && confirm("Deze reservatie weigeren? De klant krijgt hiervan een mail en het product komt weer vrij.")) {
+      state.reservations.find((x) => x.id === rf.dataset.refuse).status = "refused"; persist("Reservatie geweigerd"); return render();
+    }
+    if (t.id === "addBlock") {
+      const v = document.getElementById("blockDate").value;
+      if (v && !state.settings.blockedDates.includes(v)) { state.settings.blockedDates.push(v); persist("Dag geblokkeerd"); render(); }
+      return;
+    }
+    const ub = t.closest("[data-unblock]");
+    if (ub) { state.settings.blockedDates = state.settings.blockedDates.filter((d) => d !== ub.dataset.unblock); persist("Dag vrijgegeven"); return render(); }
+    if (t.id === "savePc") {
+      const map = {};
+      document.getElementById("postcodes").value.split(/\n+/).forEach((l) => { const m = l.match(/^\s*(\d{4})\s*[=:]\s*(\d+(?:[.,]\d+)?)/); if (m) map[m[1]] = parseFloat(m[2].replace(",", ".")); });
+      state.postcodes = map; persist("Afstanden opgeslagen"); return render();
+    }
+    if (t.id === "reset" && confirm("Alles terugzetten naar de demo-data?")) { state = BP.reset(); BP.save(state); toast("Demo-data hersteld"); return render(); }
+  });
+
+  view.addEventListener("change", (e) => {
+    const t = e.target;
+    if (t.id === "filter") { filter = t.value; return render(); }
+    const row = t.closest("[data-pid]");
+    if (row && t.dataset.f) {
+      const p = prod(row.dataset.pid), f = t.dataset.f;
+      if (t.type === "checkbox") p[f] = t.checked;
+      else if (["price", "parts", "stock"].includes(f)) p[f] = Math.max(0, parseFloat(t.value) || 0);
+      else if (f === "price2") p[f] = t.value === "" ? null : Math.max(0, parseFloat(t.value) || 0);
+      else p[f] = t.value.trim() || null;
+      if (f === "type") p.surface = ["springkasteel", "stormbaan", "attractie"].includes(t.value);
+      if (f === "name" && !p.name) p.name = "Naamloos";
+      return persist("Opgeslagen");
+    }
+    if (t.dataset.s) { state.settings[t.dataset.s] = Math.max(0, parseFloat(t.value) || 0); return persist("Opgeslagen"); }
+    if (t.dataset.b) { state.business[t.dataset.b] = t.value.trim(); return persist("Opgeslagen"); }
+  });
+
+  dialog.addEventListener("click", (e) => {
+    const t = e.target;
+    if (t === dialog || t.closest("[data-close]")) return dialog.close();
+    const dc = t.closest("[data-do-confirm]");
+    if (dc) {
+      state.reservations.find((x) => x.id === dc.dataset.doConfirm).status = "confirmed";
+      persist("Bevestigd · mail verstuurd ✓"); dialog.close(); return render();
+    }
+    const rc = t.closest("[data-recalc]");
+    if (rc) { const v = readEdit(); const q = BP.quote(state, v); document.getElementById("eTotal").value = q.total; return; }
+    const se = t.closest("[data-save-edit]");
+    if (se) {
+      const r = state.reservations.find((x) => x.id === se.dataset.saveEdit);
+      const v = readEdit();
+      const err = document.getElementById("eErr");
+      if (!v.date || !v.items.length) { err.innerHTML = `<div class="error">Kies een datum en minstens één product.</div>`; return; }
+      const clash = v.items.find((i) => r.status !== "refused" && BP.availableQty(state, prod(i.id), v.date, v.days, r.id) < i.qty);
+      if (clash) { err.innerHTML = `<div class="error">${esc(prod(clash.id).name)} is op die datum niet (voldoende) beschikbaar.</div>`; return; }
+      const q = BP.quote(state, v);
+      Object.assign(r, { date: v.date, days: v.days, items: v.items, method: v.method, postcode: v.postcode, surface: v.surface });
+      r.total = v.total === "" ? q.total : parseFloat(v.total);
+      r.deliveryUnknown = v.total === "" ? q.deliveryUnknown : false;
+      const s = state.settings;
+      r.deposit = Math.min(r.total, Math.max(s.depositMin, Math.round(r.total * s.depositPct) / 100));
+      r.customer.note = v.note;
+      persist("Reservatie aangepast"); dialog.close(); return render();
+    }
+  });
+
+  // Nieuwe reservaties uit een ander tabblad meteen tonen
+  window.addEventListener("storage", () => { state = BP.load(); render(); });
+
+  render();
+})();
+</script>
+</body>
+</html>
