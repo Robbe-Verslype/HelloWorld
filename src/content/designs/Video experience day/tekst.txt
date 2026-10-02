@@ -1,7 +1,7 @@
 Video experience day
 Rol: Brand identity, logo design
 Tags: brand identity, logo design, event
-Kleur: #1b2a4a
+Kleur: #1b0d63
 
 --- De klant + opdracht
 Video experience day is een inspirerend platform waar professionals uit de b2b-sector samenkomen om ideeën uit te wisselen, kennis te delen en waardevolle connecties op te bouwen.
@@ -20,10 +20,22 @@ Uit de missie en visie distilleerde ik vier merkwaarden: innovatief, inspirerend
 De plek waar de wegen van (corporate video-)experts elkaar kruisen. Waar ze kennis delen en samen nieuwe wegen inslaan naar impactvolle corporate video’s.
 
 # Logo
-Het logo vertaalt het concept letterlijk: een asteriskachtig merkteken van kruisende lijnen.
+Het logo vertaalt het concept letterlijk: een asteriskachtig merkteken van kruisende lijnen. Het logo verandert naargelang de grootte en de drager waarop het getoond wordt.
+
+# Grafisch systeem
+Het grafisch systeem bouwt hierop verder. Het bestaat uit kruisende lijnen die licht doorschijnend op de achtergrond staan. Dat suggereert de vroegere manier van video tonen, met fysieke tapes.
+
+[1-abri-poster.webp]
 
 # Kleuren
 Het kleurensysteem bestaat uit twee delen: een donkerblauwe basis en een accentkleur. Die accentkleur verandert naargelang het onderdeel van het evenement waarover gecommuniceerd wordt: groen voor kennisdeling, geel voor het awardgedeelte en lichtblauw voor kennisdeling.
 
+[2-badges.webp]
+
+# Typografie
+Voor de titels koos ik Halyard Display: stevig en zelfverzekerd, passend bij het creator-archetype. Inter gebruik ik voor de broodtekst, voor maximale leesbaarheid op zowel scherm als print. IBM Plex Mono wordt gebruikt voor ondertitels en extra informatie. Die zorgt voor een technische, digitale toets die bij een video-event past.
+
 --- Het resultaat
-Zo krijgt elk onderdeel zijn eigen karakter binnen dezelfde herkenbare identiteit.
+Op deze mockups zie je hoe het hele systeem tot leven komt wanneer het wordt toegepast op verschillende dragers. Zo krijgt elk onderdeel zijn eigen karakter binnen dezelfde herkenbare identiteit.
+
+[3-banners.webp]
