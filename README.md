@@ -62,7 +62,7 @@ Het eindresultaat en wat je ervan geleerd hebt.
 - `--- Titel` = start een **dropdown** op de case-pagina. Alles eronder (tot de volgende `---`) zit in die dropdown.
 - `# Tekst` = tussentitel binnen een dropdown.
 - `[foto.jpg]` op een eigen regel = die foto hoort bij die dropdown. Op een groot scherm staan de dropdowns links en alle foto's rechts (in dezelfde volgorde); op gsm staan de foto's onder de dropdowns.
-- Foto's die je nergens plaatst, komen automatisch onderaan (buiten de dropdowns).
+- Foto's die je nergens plaatst, komen automatisch bij de andere foto's. De thumbnail (cover) staat enkel bovenaan, nooit nog eens in de lijst.
 
 Foto's worden bij het bouwen automatisch verkleind en omgezet naar webp.
 
