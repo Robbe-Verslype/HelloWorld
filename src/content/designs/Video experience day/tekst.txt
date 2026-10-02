@@ -35,6 +35,8 @@ Het kleurensysteem bestaat uit twee delen: een donkerblauwe basis en een accentk
 # Typografie
 Voor de titels koos ik Halyard Display: stevig en zelfverzekerd, passend bij het creator-archetype. Inter gebruik ik voor de broodtekst, voor maximale leesbaarheid op zowel scherm als print. IBM Plex Mono wordt gebruikt voor ondertitels en extra informatie. Die zorgt voor een technische, digitale toets die bij een video-event past.
 
+[typografie.jpg]
+
 --- Het resultaat
 Op deze mockups zie je hoe het hele systeem tot leven komt wanneer het wordt toegepast op verschillende dragers. Zo krijgt elk onderdeel zijn eigen karakter binnen dezelfde herkenbare identiteit.
 
