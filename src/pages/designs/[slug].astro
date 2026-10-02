@@ -44,17 +44,33 @@ const { title, year, client, role, tags, thumbnail, color, blocks, sections, gal
       {
         sections.length > 0 && (
           <div class="sections">
-            {sections.map((section) => (
-              <details class="section">
-                <summary>
-                  <span>{section.title}</span>
-                  <span class="icon" aria-hidden="true" />
-                </summary>
-                <div class="section-body">
-                  <Blocks blocks={section.blocks} />
+            {sections.map((section) => {
+              // Tekst zit in de dropdown, foto's staan er altijd zichtbaar onder
+              const text = section.blocks.filter((b) => b.type !== 'photo');
+              const photos = section.blocks.filter((b) => b.type === 'photo');
+              return (
+                <div class="section">
+                  {text.length > 0 ? (
+                    <details>
+                      <summary>
+                        <span>{section.title}</span>
+                        <span class="icon" aria-hidden="true" />
+                      </summary>
+                      <div class="section-body">
+                        <Blocks blocks={text} />
+                      </div>
+                    </details>
+                  ) : (
+                    <h2 class="section-title">{section.title}</h2>
+                  )}
+                  {photos.length > 0 && (
+                    <div class="section-photos">
+                      <Blocks blocks={photos} />
+                    </div>
+                  )}
                 </div>
-              </details>
-            ))}
+              );
+            })}
           </div>
         )
       }
@@ -172,7 +188,9 @@ const { title, year, client, role, tags, thumbnail, color, blocks, sections, gal
   .section {
     border-bottom: 1px solid rgb(0 0 0 / 0.15);
   }
-  .section summary {
+  .section summary,
+  .section-title {
+    margin: 0;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -188,6 +206,9 @@ const { title, year, client, role, tags, thumbnail, color, blocks, sections, gal
   }
   .section summary::-webkit-details-marker {
     display: none;
+  }
+  .section-title {
+    cursor: default;
   }
   .section summary:focus-visible {
     outline: 2px solid var(--ink);
@@ -213,17 +234,23 @@ const { title, year, client, role, tags, thumbnail, color, blocks, sections, gal
   .icon::after {
     transform: rotate(90deg);
   }
-  .section[open] .icon::after {
+  .section details[open] .icon::after {
     transform: rotate(0deg);
   }
   .section-body {
     padding-bottom: 1.5rem;
   }
+  .section-photos {
+    padding-bottom: 0.5rem;
+  }
+  .section-photos :global(.photo:first-child) {
+    margin-top: 0;
+  }
   .section-body > :global(:first-child) {
     margin-top: 0;
   }
   @media (prefers-reduced-motion: no-preference) {
-    .section[open] .section-body {
+    .section details[open] .section-body {
       animation: open 0.25s ease-out;
     }
   }
