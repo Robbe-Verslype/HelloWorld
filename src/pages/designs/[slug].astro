@@ -53,7 +53,7 @@ const sectionPhotos = sections.flatMap((s) => s.blocks.filter((b) => b.type === 
                 return (
                   <div class="section">
                     {text.length > 0 ? (
-                      <details>
+                      <details name="case-sections">
                         <summary>
                           <span>{section.title}</span>
                           <span class="icon" aria-hidden="true" />
@@ -91,6 +91,16 @@ const sectionPhotos = sections.flatMap((s) => s.blocks.filter((b) => b.type === 
     <a href="/">← Terug naar de hoop</a>
   </footer>
 </Base>
+
+<script>
+  // Maar één dropdown tegelijk open (ook in browsers zonder <details name>)
+  const all = document.querySelectorAll<HTMLDetailsElement>('.section details');
+  for (const d of all) {
+    d.addEventListener('toggle', () => {
+      if (d.open) for (const other of all) if (other !== d) other.open = false;
+    });
+  }
+</script>
 
 <style>
   .back {
