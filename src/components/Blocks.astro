@@ -1,0 +1,29 @@
+---
+import { Image } from 'astro:assets';
+import type { Block } from '../lib/designs';
+
+// Tekst, tussentitels en foto's van een case
+interface Props {
+  blocks: Block[];
+}
+const { blocks } = Astro.props;
+---
+
+{
+  blocks.map((block) =>
+    block.type === 'heading' ? (
+      <h3>{block.text}</h3>
+    ) : block.type === 'photo' ? (
+      <Image src={block.photo.image} alt="" width={Math.min(1800, block.photo.image.width)} class="photo" />
+    ) : (
+      <p>
+        {block.lines.map((line, i) => (
+          <>
+            {i > 0 && <br />}
+            {line}
+          </>
+        ))}
+      </p>
+    ),
+  )
+}

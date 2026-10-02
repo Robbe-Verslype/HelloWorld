@@ -40,22 +40,29 @@ Rol: Concept, ontwerp
 Tags: branding, poster
 Kleur: #ff5a36
 
-# De vraag
-Hier je tekst. Een witregel begint een nieuwe alinea.
+--- De klant + opdracht
+Uitleg over de klant en de vraag.
 
-# Aanpak
-Nog meer tekst.
+--- Manier van aanpak
+Hoe je het aangepakt hebt.
+
+# Een tussentitel
+Meer tekst.
 
 [schets.jpg]
 
-Meer tekst onder de foto.
+--- Het resultaat
+Het eindresultaat en wat je ervan geleerd hebt.
+
+[eindresultaat.png]
 ```
 
 - **Eerste regel** = titel.
 - **Daarna** optioneel `Jaar:`, `Klant:`, `Rol:`, `Tags:` (komma's) en `Kleur:` (achtergrond van de case).
-- `# Tekst` = tussentitel.
-- `[foto.jpg]` op een eigen regel = die foto op die plek in de tekst.
-- Foto's die je niet in de tekst zet, komen automatisch onderaan.
+- `--- Titel` = start een **dropdown** op de case-pagina. Alles eronder (tot de volgende `---`) zit in die dropdown.
+- `# Tekst` = tussentitel binnen een dropdown.
+- `[foto.jpg]` op een eigen regel = die foto op die plek.
+- Foto's die je nergens plaatst, komen automatisch onderaan (buiten de dropdowns).
 
 Foto's worden bij het bouwen automatisch verkleind en omgezet naar webp.
 

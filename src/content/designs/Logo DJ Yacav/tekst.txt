@@ -4,9 +4,10 @@ Rol: Logo design
 Tags: logo design, branding, muziek
 Kleur: #1d1d1b
 
-# De case
+--- De klant + opdracht
 Een logo voor DJ Yacav. Het was mijn allereerste project: ik ontwierp het al voordat ik aan de opleiding Grafische en Digitale Media aan AP Hogeschool begon.
 
+--- Manier van aanpak
 # De eerste versie
 In het eerste logo combineerde ik de letters Y en C met een V die gevormd wordt door een kettinkje met een dogtag. Op die dogtag staat de volledige naam: YACAV.
 
@@ -17,7 +18,7 @@ Toen ik er later op terugkeek, vond ik dat de drie letters nog niet genoeg samen
 
 [cover.webp]
 
-# In gebruik
+--- Het resultaat
 Het logo op kleding en achter de draaitafels.
 
 [3-dj-shirt.jpg]

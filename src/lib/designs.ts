@@ -26,6 +26,11 @@ export type Block =
   | { type: 'paragraph'; lines: string[] }
   | { type: 'photo'; photo: Photo };
 
+export interface Section {
+  title: string;
+  blocks: Block[];
+}
+
 export interface Design {
   slug: string;
   title: string;
@@ -35,8 +40,10 @@ export interface Design {
   tags: string[];
   color: string;
   thumbnail: Photo;
-  /** Tekst met eventueel foto's ertussen ([naam.jpg]) */
+  /** Tekst vóór de eerste dropdown (optioneel) */
   blocks: Block[];
+  /** Dropdowns: elke "--- Titel"-regel start er een */
+  sections: Section[];
   /** Foto's die niet in de tekst geplaatst zijn: komen onderaan */
   gallery: Photo[];
 }
@@ -112,24 +119,34 @@ function buildDesign(folder: string): Design | null {
   const used = new Set<Photo>([thumbnail]);
 
   const blocks: Block[] = [];
+  const sections: Section[] = [];
+  // Blokken komen in de laatst geopende dropdown, of vóór de dropdowns
+  const target = () => sections.at(-1)?.blocks ?? blocks;
   const chunks = lines.slice(i).join('\n').split(/\n\s*\n/);
   for (const chunk of chunks) {
     let text = chunk.trim();
     if (!text) continue;
+    // "--- Titel" start een nieuwe dropdown (tekst mag er meteen onder staan)
+    if (text.startsWith('---')) {
+      const [first, ...rest] = text.split('\n');
+      sections.push({ title: first.replace(/^-+\s*/, '').trim(), blocks: [] });
+      text = rest.join('\n').trim();
+      if (!text) continue;
+    }
     // "# Titel" mag meteen gevolgd worden door tekst, zonder witregel
     if (text.startsWith('#')) {
       const [first, ...rest] = text.split('\n');
-      blocks.push({ type: 'heading', text: first.replace(/^#+\s*/, '') });
+      target().push({ type: 'heading', text: first.replace(/^#+\s*/, '') });
       text = rest.join('\n').trim();
       if (!text) continue;
     }
     const photoRef = text.match(/^\[(.+)\]$/);
     const photo = photoRef && byName.get(photoRef[1].trim().toLowerCase());
     if (photo) {
-      blocks.push({ type: 'photo', photo });
+      target().push({ type: 'photo', photo });
       used.add(photo);
     } else {
-      blocks.push({ type: 'paragraph', lines: text.split('\n').map((l) => l.trim()) });
+      target().push({ type: 'paragraph', lines: text.split('\n').map((l) => l.trim()) });
     }
   }
 
@@ -146,6 +163,7 @@ function buildDesign(folder: string): Design | null {
       : '#f1efe9',
     thumbnail,
     blocks,
+    sections,
     gallery: photos.filter((p) => !used.has(p)),
   };
 }

@@ -1,6 +1,7 @@
 ---
 import { Image } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
+import Blocks from '../../components/Blocks.astro';
 import { getDesigns, type Design } from '../../lib/designs';
 
 // Maakt automatisch één pagina per mapje
@@ -9,7 +10,7 @@ export function getStaticPaths() {
 }
 
 const { design } = Astro.props as { design: Design };
-const { title, year, client, role, tags, thumbnail, color, blocks, gallery } = design;
+const { title, year, client, role, tags, thumbnail, color, blocks, sections, gallery } = design;
 ---
 
 <Base title={`${title} — Robbe Verslype`}>
@@ -38,27 +39,23 @@ const { title, year, client, role, tags, thumbnail, color, blocks, gallery } = d
     </header>
 
     <div class="case">
+      {blocks.length > 0 && <Blocks blocks={blocks} />}
+
       {
-        blocks.map((block) =>
-          block.type === 'heading' ? (
-            <h2>{block.text}</h2>
-          ) : block.type === 'photo' ? (
-            <Image
-              src={block.photo.image}
-              alt=""
-              width={Math.min(1800, block.photo.image.width)}
-              class="photo"
-            />
-          ) : (
-            <p>
-              {block.lines.map((line, i) => (
-                <>
-                  {i > 0 && <br />}
-                  {line}
-                </>
-              ))}
-            </p>
-          ),
+        sections.length > 0 && (
+          <div class="sections">
+            {sections.map((section) => (
+              <details class="section">
+                <summary>
+                  <span>{section.title}</span>
+                  <span class="icon" aria-hidden="true" />
+                </summary>
+                <div class="section-body">
+                  <Blocks blocks={section.blocks} />
+                </div>
+              </details>
+            ))}
+          </div>
         )
       }
     </div>
@@ -159,11 +156,85 @@ const { title, year, client, role, tags, thumbnail, color, blocks, gallery } = d
     font-size: 1.125rem;
     line-height: 1.65;
   }
-  .case h2 {
-    margin: 3rem 0 0.75rem;
-    font-size: 1.6rem;
+  .case :global(h3) {
+    margin: 2.25rem 0 0.5rem;
+    font-size: 1.3rem;
     letter-spacing: -0.02em;
   }
+  .case :global(p) {
+    margin: 0 0 1rem;
+  }
+
+  /* De drie dropdowns */
+  .sections {
+    border-top: 1px solid rgb(0 0 0 / 0.15);
+  }
+  .section {
+    border-bottom: 1px solid rgb(0 0 0 / 0.15);
+  }
+  .section summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.4rem 0;
+    font-family: var(--font-display);
+    font-size: clamp(1.35rem, 3vw, 1.9rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    cursor: pointer;
+    list-style: none;
+  }
+  .section summary::-webkit-details-marker {
+    display: none;
+  }
+  .section summary:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 4px;
+  }
+  /* Plus dat een min wordt als de dropdown open is */
+  .icon {
+    position: relative;
+    flex: none;
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+  .icon::before,
+  .icon::after {
+    content: '';
+    position: absolute;
+    inset: 50% 0 auto;
+    height: 2px;
+    margin-top: -1px;
+    background: currentColor;
+    transition: transform 0.2s;
+  }
+  .icon::after {
+    transform: rotate(90deg);
+  }
+  .section[open] .icon::after {
+    transform: rotate(0deg);
+  }
+  .section-body {
+    padding-bottom: 1.5rem;
+  }
+  .section-body > :global(:first-child) {
+    margin-top: 0;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .section[open] .section-body {
+      animation: open 0.25s ease-out;
+    }
+  }
+  @keyframes open {
+    from {
+      opacity: 0;
+      transform: translateY(-6px);
+    }
+  }
+
+  .case :global(.photo),
   .photo {
     width: 100%;
     height: auto;
@@ -172,7 +243,7 @@ const { title, year, client, role, tags, thumbnail, color, blocks, gallery } = d
   }
   @media (min-width: 1000px) {
     /* Foto's in de tekst mogen breder zijn dan de tekst */
-    .case .photo {
+    .case :global(.photo) {
       width: calc(100% + 16rem);
       max-width: none;
       margin-inline: -8rem;
