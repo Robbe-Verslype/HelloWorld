@@ -25,6 +25,8 @@ Het logo vertaalt het concept letterlijk: een asteriskachtig merkteken van kruis
 # Grafisch systeem
 Het grafisch systeem bouwt hierop verder. Het bestaat uit kruisende lijnen die licht doorschijnend op de achtergrond staan. Dat suggereert de vroegere manier van video tonen, met fysieke tapes.
 
+[0-logo-lijnen.webp]
+
 [1-abri-poster.webp]
 
 # Kleuren
