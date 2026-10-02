@@ -41,59 +41,50 @@ const sectionPhotos = sections.flatMap((s) => s.blocks.filter((b) => b.type === 
     </header>
 
     <div class="case">
-      {blocks.length > 0 && <Blocks blocks={blocks} />}
+      {/* Links: tekst en dropdowns */}
+      <div class="case-text">
+        {blocks.length > 0 && <Blocks blocks={blocks} />}
 
-      {
-        sections.length > 0 && (
-          <div class="sections">
-            {sections.map((section) => {
-              const text = section.blocks.filter((b) => b.type !== 'photo');
-              return (
-                <div class="section">
-                  {text.length > 0 ? (
-                    <details>
-                      <summary>
-                        <span>{section.title}</span>
-                        <span class="icon" aria-hidden="true" />
-                      </summary>
-                      <div class="section-body">
-                        <Blocks blocks={text} />
-                      </div>
-                    </details>
-                  ) : (
-                    <h2 class="section-title">{section.title}</h2>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )
-      }
+        {
+          sections.length > 0 && (
+            <div class="sections">
+              {sections.map((section) => {
+                const text = section.blocks.filter((b) => b.type !== 'photo');
+                return (
+                  <div class="section">
+                    {text.length > 0 ? (
+                      <details>
+                        <summary>
+                          <span>{section.title}</span>
+                          <span class="icon" aria-hidden="true" />
+                        </summary>
+                        <div class="section-body">
+                          <Blocks blocks={text} />
+                        </div>
+                      </details>
+                    ) : (
+                      <h2 class="section-title">{section.title}</h2>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )
+        }
+      </div>
 
-      {/* Foto's van alle dropdowns, altijd zichtbaar onder de groep dropdowns */}
+      {/* Rechts (op gsm eronder): alle foto's, altijd zichtbaar */}
       {
-        sectionPhotos.length > 0 && (
-          <div class="section-photos">
+        (sectionPhotos.length > 0 || gallery.length > 0) && (
+          <div class="case-photos">
             <Blocks blocks={sectionPhotos} />
+            {gallery.map((photo) => (
+              <Image src={photo.image} alt="" width={Math.min(1800, photo.image.width)} class="photo" />
+            ))}
           </div>
         )
       }
     </div>
-
-    {
-      gallery.length > 0 && (
-        <div class="gallery">
-          {gallery.map((photo) => (
-            <Image
-              src={photo.image}
-              alt=""
-              width={Math.min(1800, photo.image.width)}
-              class="photo"
-            />
-          ))}
-        </div>
-      )
-    }
   </article>
 
   <footer class="end">
@@ -169,12 +160,36 @@ const sectionPhotos = sections.flatMap((s) => s.blocks.filter((b) => b.type === 
     box-shadow: 0 20px 50px -20px rgb(0 0 0 / 0.45);
   }
 
+  /* Twee kolommen: links de dropdowns, rechts de foto's. Op gsm onder elkaar. */
   .case {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
     max-width: 44rem;
     margin: 0 auto;
     padding: 3rem 1rem 1rem;
     font-size: 1.125rem;
     line-height: 1.65;
+  }
+  .case-text,
+  .case-photos {
+    min-width: 0;
+  }
+  @media (min-width: 900px) {
+    .case {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      gap: 3rem;
+      max-width: 82rem;
+      padding: 4rem 3rem 1rem;
+      align-items: start;
+    }
+    /* De dropdowns blijven in beeld terwijl je langs de foto's scrolt */
+    .case-text {
+      position: sticky;
+      top: 5rem;
+      max-height: calc(100vh - 6rem);
+      overflow-y: auto;
+    }
   }
   .case :global(h3) {
     margin: 2.25rem 0 0.5rem;
@@ -244,9 +259,6 @@ const sectionPhotos = sections.flatMap((s) => s.blocks.filter((b) => b.type === 
   .section-body {
     padding-bottom: 1.5rem;
   }
-  .section-photos {
-    padding-top: 1rem;
-  }
   .section-body > :global(:first-child) {
     margin-top: 0;
   }
@@ -262,26 +274,17 @@ const sectionPhotos = sections.flatMap((s) => s.blocks.filter((b) => b.type === 
     }
   }
 
-  .case :global(.photo),
-  .photo {
+  .case-photos {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  .case :global(.photo) {
+    display: block;
     width: 100%;
     height: auto;
-    margin: 2rem 0;
+    margin: 0;
     border-radius: 4px;
-  }
-  @media (min-width: 1000px) {
-    /* Foto's in de tekst mogen breder zijn dan de tekst */
-    .case :global(.photo) {
-      width: calc(100% + 16rem);
-      max-width: none;
-      margin-inline: -8rem;
-    }
-  }
-
-  .gallery {
-    max-width: 60rem;
-    margin: 0 auto;
-    padding: 0 1rem;
   }
 
   .end {

@@ -61,7 +61,7 @@ Het eindresultaat en wat je ervan geleerd hebt.
 - **Daarna** optioneel `Jaar:`, `Klant:`, `Rol:`, `Tags:` (komma's) en `Kleur:` (achtergrond van de case).
 - `--- Titel` = start een **dropdown** op de case-pagina. Alles eronder (tot de volgende `---`) zit in die dropdown.
 - `# Tekst` = tussentitel binnen een dropdown.
-- `[foto.jpg]` op een eigen regel = die foto hoort bij die dropdown. De dropdowns staan samen bovenaan; alle foto's staan altijd zichtbaar onder de groep dropdowns, in dezelfde volgorde.
+- `[foto.jpg]` op een eigen regel = die foto hoort bij die dropdown. Op een groot scherm staan de dropdowns links en alle foto's rechts (in dezelfde volgorde); op gsm staan de foto's onder de dropdowns.
 - Foto's die je nergens plaatst, komen automatisch onderaan (buiten de dropdowns).
 
 Foto's worden bij het bouwen automatisch verkleind en omgezet naar webp.
