@@ -1,0 +1,18 @@
+Testproject 06
+Klant: Testklant 06
+Rol: Test
+Tags: test
+Kleur: #1d1d1b
+
+--- De klant + opdracht
+Dit is een testproject om te zien hoe de site werkt met 20 projecten. Je mag het verwijderen.
+
+--- Manier van aanpak
+Hier komt normaal hoe je het project hebt aangepakt.
+
+[proces.jpg]
+
+--- Het resultaat
+Hier komt normaal het eindresultaat en wat je ervan geleerd hebt.
+
+[resultaat.jpg]
