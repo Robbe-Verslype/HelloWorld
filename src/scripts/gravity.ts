@@ -65,12 +65,14 @@ export function initGravityPile(container: HTMLElement, bombButton?: HTMLButtonE
 
   // --- Formaat van de thumbnails afhankelijk van scherm en aantal per hoop ---
   function thumbSize(ratio: number) {
+    // Elke thumbnail krijgt ongeveer dezelfde oppervlakte, ongeacht of hij breed, hoog of vierkant is
     const area = (width * height * FILL_RATIO) / perPile;
-    const min = width < 600 ? 90 : 140;
-    const max = width < 600 ? 200 : 340;
-    let w = Math.sqrt(area * ratio);
-    w = Math.max(min, Math.min(max, w));
-    return { w, h: w / ratio };
+    const min = width < 600 ? 110 : 160;
+    const max = width < 600 ? 170 : 270;
+    const side = Math.max(min, Math.min(max, Math.sqrt(area)));
+    // Heel brede of hoge foto's worden iets bijgesneden, zodat geen enkele thumbnail een lange strook wordt
+    const r = Math.sqrt(Math.max(0.7, Math.min(1.6, ratio)));
+    return { w: side * r, h: side / r };
   }
 
   // --- Eén physics-body per thumbnail ---
