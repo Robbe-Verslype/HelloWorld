@@ -10,6 +10,8 @@ const FILL_RATIO = 0.42;
 const MAX_PER_PILE_DESKTOP = 14;
 const MAX_PER_PILE_MOBILE = 8;
 const WALL = 200;
+/** Hoe ver (deel van de schermhoogte) de vloer boven de onderrand ligt, zodat de thumbnails óp de vloer van de kamer staan. */
+const FLOOR_LIFT = 0.07;
 
 // Botsingscategorieën: thumbnails die wegvliegen botsen niet meer met de nieuwe
 const CAT_WALL = 0x0001;
@@ -50,7 +52,7 @@ export function initGravityPile(container: HTMLElement, bombButton?: HTMLButtonE
     const tall = height * 6;
     // setVertices bepaalt de vorm, setPosition daarna de plek
     Body.setVertices(floor, rectVerts(width + WALL * 2, WALL));
-    Body.setPosition(floor, { x: width / 2, y: height + WALL / 2 });
+    Body.setPosition(floor, { x: width / 2, y: height * (1 - FLOOR_LIFT) + WALL / 2 });
     Body.setVertices(left, rectVerts(WALL, tall));
     Body.setPosition(left, { x: -WALL / 2, y: height - tall / 2 });
     Body.setVertices(right, rectVerts(WALL, tall));
