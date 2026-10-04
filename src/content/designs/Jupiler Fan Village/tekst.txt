@@ -7,16 +7,23 @@ Kleur: #e30613
 --- De klant + opdracht
 Een schoolopdracht voor de Rode Duivels. We kregen hun huisstijlrichtlijnen en moesten die correct toepassen op een Instagram-carousel.
 
+# Huisstijl
+Alle elementen uit de richtlijnen moesten gebruikt worden: de rode en gele kleuren, het smalle, vette lettertype en de verticale tekstband met de drietand.
+
 --- Manier van aanpak
-De foto's zocht ik zelf. Daarbij lette ik erop dat ze conform waren met de huisstijlrichtlijnen van de Rode Duivels.
+# Opbouw: attract, engage, convert
+De carousel is opgebouwd volgens attract, engage en convert. Hij begint met een foto van fans waarop de emotie echt getoond wordt, om de fans warm te maken. Daarna volgen de info en de opbouw, en hij eindigt met een call to action.
 
---- Het resultaat
-Een Instagram-carousel voor de Jupiler Fan Village die de huisstijl van de Rode Duivels correct toepast.
-
-[1-instagram-mockup.webp]
+# Foto's
+De foto's zocht ik zelf, conform de huisstijlrichtlijnen. Het moeilijke was dat de spelers er niet op mochten staan: het moesten foto's van fans zijn. Die zijn moeilijk te vinden in hoge kwaliteit en met de juiste emotie.
 
 [2-football.webp]
 
 [3-join-us.webp]
 
 [4-fan-village.webp]
+
+--- Het resultaat
+Een Instagram-carousel voor de Jupiler Fan Village die de huisstijl van de Rode Duivels correct toepast.
+
+[1-instagram-mockup.jpg]
