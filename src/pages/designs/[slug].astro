@@ -10,12 +10,12 @@ export function getStaticPaths() {
 }
 
 const { design } = Astro.props as { design: Design };
-const { title, year, client, role, tags, thumbnail, color, blocks, sections, gallery, extraClips } = design;
+const { title, year, client, role, tags, thumbnail, hero, color, blocks, sections, gallery, extraClips } = design;
 // Dropdowns blijven bij elkaar; hun foto's komen er samen onder
-// De thumbnail staat al bovenaan, dus die niet nog eens in de lijst
-const introBlocks = blocks.filter((b) => !(b.type === 'photo' && b.photo.name === thumbnail.name));
+// De foto bovenaan (hero) niet nog eens in de lijst
+const introBlocks = blocks.filter((b) => !(b.type === 'photo' && b.photo.name === hero.name));
 const sectionPhotos = sections.flatMap((s) =>
-  s.blocks.filter((b) => isMedia(b) && !(b.type === 'photo' && b.photo.name === thumbnail.name)),
+  s.blocks.filter((b) => isMedia(b) && !(b.type === 'photo' && b.photo.name === hero.name)),
 );
 ---
 
@@ -36,9 +36,9 @@ const sectionPhotos = sections.flatMap((s) =>
         </dl>
       </div>
       <Image
-        src={thumbnail.image}
+        src={hero.image}
         alt={title}
-        width={Math.min(1200, thumbnail.image.width)}
+        width={Math.min(1200, hero.image.width)}
         class="hero-img"
         style={`view-transition-name: thumb-${design.slug}`}
       />

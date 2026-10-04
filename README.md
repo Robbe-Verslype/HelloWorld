@@ -25,6 +25,7 @@ src/content/designs/
     eindresultaat.png
 ```
 
+- **Grote foto bovenaan de case:** noem een foto `hero.jpg` (of .png/.webp) als je bovenaan iets anders wil dan de thumbnail.
 - **Thumbnail:** de foto die `cover`, `thumbnail` of `thumb` heet. Anders de eerste foto op naam (tip: `01.jpg`, `02.jpg`, …).
 - **URL:** komt uit de mapnaam: `Bloom Festival` → `/designs/bloom-festival/`.
 - **Verbergen:** zet een `_` voor de mapnaam (`_Bloom Festival`).

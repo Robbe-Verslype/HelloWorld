@@ -68,6 +68,8 @@ export interface Design {
   tags: string[];
   color: string;
   thumbnail: Photo;
+  /** Grote foto bovenaan de case-pagina (bestand 'hero.*'), anders de thumbnail */
+  hero: Photo;
   /** Tekst vóór de eerste dropdown (optioneel) */
   blocks: Block[];
   /** Dropdowns: elke "--- Titel"-regel start er een */
@@ -152,7 +154,8 @@ function buildDesign(folder: string): Design | null {
   const usedClips = new Set<string>();
   const thumbnail =
     photos.find((p) => /^(thumbnail|thumb|cover)\./i.test(p.name)) ?? photos[0];
-  const used = new Set<Photo>([thumbnail]);
+  const hero = photos.find((p) => /^hero\./i.test(p.name)) ?? thumbnail;
+  const used = new Set<Photo>([thumbnail, hero]);
 
   const blocks: Block[] = [];
   const sections: Section[] = [];
@@ -213,6 +216,7 @@ function buildDesign(folder: string): Design | null {
       ? (meta.color.startsWith('#') ? meta.color : `#${meta.color}`)
       : '#f1efe9',
     thumbnail,
+    hero,
     blocks,
     sections,
     gallery: photos.filter((p) => !used.has(p)),
