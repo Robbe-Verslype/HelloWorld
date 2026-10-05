@@ -1,4 +1,6 @@
 Listed
+Jaar: 2026
+Klant: Schoolopdracht
 Rol: Naming, baseline, logo design
 Tags: naming, branding, logo design
 Kleur: #e9e9e9
@@ -19,6 +21,9 @@ Ik werkte drie namen uit (Listed, On core en Point blank) en drie baselines (Not
 # Testen
 Uit de usertesting kwam Listed met “Nothing to hide” als beste combinatie. Listed scoorde het best in de say- en spellingstest: kort en eenvoudig, maar met een diepere betekenis. On core zorgde voor verwarring en werd vaak verkeerd geschreven, Point blank gaf associaties die niet bij een snack- en drankmerk passen. De BOIP-check toonde geen conflicten met andere merken en de linguïstische check was positief.
 
+# Logo
+Het logo is opgebouwd uit balkjes die verwijzen naar de lijnen van een ingrediëntenlabel.
+
 [1-pagina.png]
 
 [2-pagina.png]
@@ -29,6 +34,8 @@ Uit de usertesting kwam Listed met “Nothing to hide” als beste combinatie. L
 
 --- Het resultaat
 Het logo bestaat uit een primaire, secundaire en tertiaire versie, zodat het op elke drager en in elke grootte werkt.
+
+Momenteel ben ik het logo nog aan het verbeteren, zodat het beter past bij een FMCG-merk: zo voelt het voor mij nog niet helemaal juist. Zodra het herwerkte logo af is, werk ik ook de toepassingen verder uit.
 
 [5-pagina.png]
 
