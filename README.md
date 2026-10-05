@@ -69,6 +69,10 @@ Het eindresultaat en wat je ervan geleerd hebt.
 
 Foto's worden bij het bouwen automatisch verkleind en omgezet naar webp.
 
+## CV en portfolio
+
+Zet je PDF's als `public/downloads/cv.pdf` en `public/downloads/portfolio.pdf`. Zodra een bestand er staat, verschijnt er een downloadknop in het Contact-menu rechtsboven.
+
 ## Online zetten op Hostinger
 
 De site is na `npm run build` gewoon een map met HTML, CSS en foto's (`dist/`). Die kan op elk Hostinger-webhostingpakket.

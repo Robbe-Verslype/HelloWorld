@@ -3,6 +3,13 @@
 const email = 'robbe.verslype@gmail.com';
 const phone = '0476 36 84 25';
 const phoneLink = '+32476368425';
+
+// CV en portfolio: zet de PDF's in public/downloads/. Een knop verschijnt alleen als het bestand bestaat.
+import { existsSync } from 'node:fs';
+const downloads = [
+  { file: 'cv.pdf', label: 'Download mijn cv' },
+  { file: 'portfolio.pdf', label: 'Download mijn portfolio' },
+].filter((d) => existsSync(`public/downloads/${d.file}`));
 ---
 
 <div class="contact" data-contact>
@@ -21,6 +28,18 @@ const phoneLink = '+32476368425';
       <span class="kind">Telefoon</span>
       <span class="value">{phone}</span>
     </a>
+    {
+      downloads.length > 0 && (
+        <div class="downloads">
+          {downloads.map((d) => (
+            <a href={`/downloads/${d.file}`} download>
+              <span class="kind">PDF</span>
+              <span class="value">{d.label} ↓</span>
+            </a>
+          ))}
+        </div>
+      )
+    }
   </div>
 </div>
 
@@ -97,6 +116,13 @@ const phoneLink = '+32476368425';
   .contact-menu a:focus-visible {
     background: rgb(0 0 0 / 0.06);
     outline: none;
+  }
+  .downloads {
+    display: flex;
+    flex-direction: column;
+    margin-top: 0.3rem;
+    padding-top: 0.3rem;
+    border-top: 1px solid rgb(0 0 0 / 0.1);
   }
   .kind {
     font-size: 0.7rem;
