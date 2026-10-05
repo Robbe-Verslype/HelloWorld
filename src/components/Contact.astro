@@ -7,8 +7,8 @@ const phoneLink = '+32476368425';
 // CV en portfolio: zet de PDF's in public/downloads/. Een knop verschijnt alleen als het bestand bestaat.
 import { existsSync } from 'node:fs';
 const downloads = [
-  { file: 'cv.pdf', label: 'Download mijn cv' },
-  { file: 'portfolio.pdf', label: 'Download mijn portfolio' },
+  { file: 'cv.pdf', label: 'Download mijn cv', name: 'Robbe_Verslype_CV.pdf' },
+  { file: 'portfolio.pdf', label: 'Download mijn portfolio', name: 'Robbe_Verslype_Portfolio.pdf' },
 ].filter((d) => existsSync(`public/downloads/${d.file}`));
 ---
 
@@ -32,7 +32,7 @@ const downloads = [
       downloads.length > 0 && (
         <div class="downloads">
           {downloads.map((d) => (
-            <a href={`/downloads/${d.file}`} download>
+            <a href={`/downloads/${d.file}`} download={d.name}>
               <span class="kind">PDF</span>
               <span class="value">{d.label} ↓</span>
             </a>
