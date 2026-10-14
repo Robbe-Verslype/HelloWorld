@@ -10,6 +10,8 @@ const FILL_RATIO = 0.42;
 const MAX_PER_PILE_DESKTOP = 14;
 const MAX_PER_PILE_MOBILE = 8;
 const WALL = 200;
+/** Maximale snelheid (px per stap), zodat niets door de vloer schiet. */
+const MAX_SPEED = 45;
 
 // Botsingscategorieën: thumbnails die wegvliegen botsen niet meer met de nieuwe
 const CAT_WALL = 0x0001;
@@ -36,6 +38,15 @@ export function initGravityPile(container: HTMLElement, bombButton?: HTMLButtonE
   const engine = Engine.create({ enableSleeping: true, positionIterations: 12, velocityIterations: 8 });
   engine.gravity.y = 1.1;
 
+  /*
+   * Hoogte = het echt zichtbare deel van het scherm. Op gsm en in in-app browsers (LinkedIn, Instagram…)
+   * is 100vh vaak hoger dan wat je ziet: de vloer lag dan onder de rand en de thumbnails vielen "door" de onderkant.
+   */
+  function fitHeight() {
+    const h = `${Math.round(window.innerHeight)}px`;
+    if (container.style.height !== h) container.style.height = h;
+  }
+  fitHeight();
   let width = container.clientWidth;
   let height = container.clientHeight;
 
@@ -262,25 +273,45 @@ export function initGravityPile(container: HTMLElement, bombButton?: HTMLButtonE
     item.el.style.zIndex = String(++zCounter);
   }
 
+  /** Thumbnail opnieuw van boven laten vallen (bv. als hij buiten beeld is geraakt). */
+  function respawn(it: Item) {
+    Body.setPosition(it.body, {
+      x: Math.min(Math.max(it.body.position.x, it.w / 2), Math.max(it.w / 2, width - it.w / 2)),
+      y: -it.h,
+    });
+    Body.setVelocity(it.body, { x: 0, y: 0 });
+    Body.setAngularVelocity(it.body, 0);
+    Sleeping.set(it.body, false);
+  }
+
   // --- Schermgrootte wijzigt: muren verplaatsen, ontsnapte thumbnails terugzetten ---
   let resizeTimer = 0;
-  addEventListener('resize', () => {
+  function relayout() {
+    fitHeight();
+    const w = container.clientWidth;
+    const h = container.clientHeight;
+    if (w === width && h === height) return;
+    width = w;
+    height = h;
+    placeWalls();
+    wakeAll();
+    for (const it of items) {
+      if (it.state !== 'active') continue;
+      const { x, y } = it.body.position;
+      if (x < 0 || x > width || y > height - it.h / 4) respawn(it);
+    }
+  }
+  const scheduleRelayout = () => {
     clearTimeout(resizeTimer);
-    resizeTimer = window.setTimeout(() => {
-      width = container.clientWidth;
-      height = container.clientHeight;
-      placeWalls();
-      wakeAll();
-      for (const it of items) {
-        if (it.state !== 'active') continue;
-        const { x, y } = it.body.position;
-        if (x < 0 || x > width || y > height) {
-          Body.setPosition(it.body, { x: Math.min(Math.max(x, it.w / 2), width - it.w / 2), y: -it.h });
-          Body.setVelocity(it.body, { x: 0, y: 0 });
-        }
-      }
-    }, 150);
-  });
+    resizeTimer = window.setTimeout(relayout, 120);
+  };
+  addEventListener('resize', scheduleRelayout);
+  addEventListener('orientationchange', scheduleRelayout);
+  addEventListener('pageshow', scheduleRelayout);
+  window.visualViewport?.addEventListener('resize', scheduleRelayout);
+  // Sommige in-app browsers geven hun echte formaat pas na het laden door, zonder resize-event:
+  // daarom controleert de animatielus ook zelf om de halve seconde of het scherm veranderd is
+  let lastCheck = 0;
 
   // --- Start: eerste lading laten vallen ---
   dropPile(currentPile);
@@ -293,6 +324,10 @@ export function initGravityPile(container: HTMLElement, bombButton?: HTMLButtonE
   function frame(now: number) {
     const dt = Math.min(now - last, 1000 / 60);
     last = now;
+    if (now - lastCheck > 500) {
+      lastCheck = now;
+      relayout();
+    }
     Engine.update(engine, dt);
 
     for (const it of items) {
@@ -302,6 +337,16 @@ export function initGravityPile(container: HTMLElement, bombButton?: HTMLButtonE
       if (it.state === 'leaving' && (y < -it.h - 100 || now - it.leftAt > 3000)) {
         removeItem(it);
         continue;
+      }
+      if (it.state === 'active') {
+        // Vangnet: wat toch onder de vloer of naast het scherm belandt, valt opnieuw van boven in
+        if (y - it.h / 2 > height + 10 || x < -it.w || x > width + it.w) {
+          respawn(it);
+          continue;
+        }
+        const v = it.body.velocity;
+        const speed = Math.hypot(v.x, v.y);
+        if (speed > MAX_SPEED) Body.setVelocity(it.body, { x: (v.x / speed) * MAX_SPEED, y: (v.y / speed) * MAX_SPEED });
       }
       it.el.style.transform = `translate(${x - it.w / 2}px, ${y - it.h / 2}px) rotate(${it.body.angle}rad)`;
       it.el.style.visibility = 'visible';
