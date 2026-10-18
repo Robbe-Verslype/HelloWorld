@@ -30,7 +30,7 @@ export interface Photo {
 export type Block =
   | { type: 'heading'; text: string }
   | { type: 'paragraph'; lines: string[] }
-  | { type: 'photo'; photo: Photo }
+  | { type: 'photo'; photo: Photo; caption?: string }
   | { type: 'video'; embed: string; vertical: boolean; kind: 'reel' | 'post' | 'video' }
   | { type: 'clip'; src: string; name: string };
 
@@ -180,7 +180,10 @@ function buildDesign(folder: string): Design | null {
       if (!text) continue;
     }
     const photoRef = text.match(/^\[(.+)\]$/);
-    const photo = photoRef && byName.get(photoRef[1].trim().toLowerCase());
+    // [foto.jpg | Bijschrift] zet een korte uitleg onder de foto
+    const [photoName, ...captionParts] = photoRef ? photoRef[1].split('|') : [''];
+    const caption = captionParts.join('|').trim() || undefined;
+    const photo = photoRef && byName.get(photoName.trim().toLowerCase());
     // [https://videolink] of [https://videolink staand] (voor reels / verticale video's)
     const videoRef = photoRef && photoRef[1].trim().match(/^(https?:\/\/\S+)(?:\s+(staand|liggend))?$/i);
     const embed = videoRef && videoEmbed(videoRef[1]);
@@ -197,7 +200,7 @@ function buildDesign(folder: string): Design | null {
       target().push({ type: 'clip', src: clip.src, name: clip.name });
       usedClips.add(clip.name);
     } else if (photo) {
-      target().push({ type: 'photo', photo });
+      target().push({ type: 'photo', photo, caption });
       used.add(photo);
     } else {
       target().push({ type: 'paragraph', lines: text.split('\n').map((l) => l.trim()) });
