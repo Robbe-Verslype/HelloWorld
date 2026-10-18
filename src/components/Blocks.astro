@@ -19,6 +19,20 @@ for (const block of blocks) {
     else items.push({ type: 'clips', clips: [block] });
   } else items.push(block);
 }
+
+// [tekst](https://…) in een alinea wordt een link
+const LINK = /\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g;
+function linkParts(line: string) {
+  const parts: ({ text: string } | { text: string; href: string })[] = [];
+  let last = 0;
+  for (const m of line.matchAll(LINK)) {
+    if (m.index > last) parts.push({ text: line.slice(last, m.index) });
+    parts.push({ text: m[1], href: m[2] });
+    last = m.index + m[0].length;
+  }
+  if (last < line.length) parts.push({ text: line.slice(last) });
+  return parts;
+}
 ---
 
 {
@@ -56,7 +70,15 @@ for (const block of blocks) {
         {block.lines.map((line, i) => (
           <>
             {i > 0 && <br />}
-            {line}
+            {linkParts(line).map((part) =>
+              'href' in part ? (
+                <a href={part.href} target="_blank" rel="noopener">
+                  {part.text}
+                </a>
+              ) : (
+                part.text
+              ),
+            )}
           </>
         ))}
       </p>
@@ -65,6 +87,14 @@ for (const block of blocks) {
 }
 
 <style>
+  p a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+  }
+  p a:hover {
+    text-decoration-thickness: 2px;
+  }
   /* Eigen videobestanden: vullen de kolom, in hun eigen verhouding */
   .clips {
     display: grid;
