@@ -34,7 +34,7 @@ for (const block of blocks) {
       <h3>{block.text}</h3>
     ) : block.type === 'photo' ? (
       block.caption ? (
-        <figure class="figure">
+        <figure class="figure" tabindex="0">
           <Image src={block.photo.image} alt={block.caption} width={Math.min(1800, block.photo.image.width)} class="photo" />
           <figcaption>{block.caption}</figcaption>
         </figure>
