@@ -12,6 +12,11 @@ const MAX_PER_PILE_MOBILE = 8;
 const WALL = 200;
 /** Maximale snelheid (px per stap), zodat niets door de vloer schiet. */
 const MAX_SPEED = 80;
+/** Vaste rekenstap (ms): kleine, gelijke stappen houden een zware stapel stil in plaats van te laten bibberen. */
+const STEP = 1000 / 120;
+/** Stuiteren enkel bij een echte klap; trager dan dit (px per frame) botst zonder stuiter. */
+const BOUNCE_SPEED = 4;
+const RESTITUTION = 0.45; // hoe hard ze stuiteren (0 = niet, 1 = superbal)
 
 // Botsingscategorieën: thumbnails die wegvliegen botsen niet meer met de nieuwe
 const CAT_WALL = 0x0001;
@@ -35,7 +40,7 @@ export function initGravityPile(container: HTMLElement, bombButton?: HTMLButtonE
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // Extra iteraties + "slapen" houden de stapel stil zodra alles geland is
-  const engine = Engine.create({ enableSleeping: true, positionIterations: 12, velocityIterations: 8 });
+  const engine = Engine.create({ enableSleeping: true, positionIterations: 20, velocityIterations: 12 });
   // Zwaartekracht: hoger = zwaarder, ze vallen sneller en liggen sneller stil
   engine.gravity.y = 3;
 
@@ -93,11 +98,14 @@ export function initGravityPile(container: HTMLElement, bombButton?: HTMLButtonE
     const { w, h } = thumbSize(ratio);
     const body = Bodies.rectangle(0, -h, w, h, {
       chamfer: { radius: 4 },
-      restitution: 0.45, // hoe hard ze stuiteren (0 = niet, 1 = superbal)
-      friction: 0.5,
+      restitution: RESTITUTION,
+      friction: 0.6,
+      frictionStatic: 1,
+      slop: 0.1,
       frictionAir: 0.012,
       density: 0.002,
     });
+    body.sleepThreshold = 30; // sneller in slaap = sneller helemaal stil
     el.style.width = `${w}px`;
     el.style.height = `${h}px`;
     return { el, body, w, h, state: 'off' as State, leftAt: 0 };
@@ -146,7 +154,7 @@ export function initGravityPile(container: HTMLElement, bombButton?: HTMLButtonE
       if (pileCount > 1) active.forEach(removeItem);
       currentPile = next;
       dropPile(currentPile);
-      for (let i = 0; i < 600; i++) Engine.update(engine, 1000 / 60);
+      for (let i = 0; i < 600; i++) step();
       return;
     }
 
@@ -318,19 +326,41 @@ export function initGravityPile(container: HTMLElement, bombButton?: HTMLButtonE
   // --- Start: eerste lading laten vallen ---
   dropPile(currentPile);
   if (reduceMotion) {
-    for (let i = 0; i < 600; i++) Engine.update(engine, 1000 / 60);
+    for (let i = 0; i < 600; i++) step();
   }
 
   // --- Animatielus: physics doorrekenen en DOM-elementen meebewegen ---
+  /** Eén rekenstap. Wie traag beweegt of stilligt, stuitert niet: anders trilt de stapel door de zwaartekracht. */
+  function step() {
+    for (const it of items) {
+      if (it.state === 'off') continue;
+      const { body } = it;
+      const speed = Body.getSpeed(body);
+      body.restitution = speed > BOUNCE_SPEED ? RESTITUTION : 0;
+      // Bijna stil: kleine trillingen extra afremmen zodat de stapel meteen rustig ligt (niet tijdens slepen)
+      if (drag?.item !== it && !body.isSleeping) {
+        if (speed < 1.5) Body.setVelocity(body, Matter.Vector.mult(Body.getVelocity(body), 0.85));
+        const spin = Body.getAngularVelocity(body);
+        if (Math.abs(spin) < 0.03) Body.setAngularVelocity(body, spin * 0.7);
+      }
+    }
+    Engine.update(engine, STEP);
+  }
+
   let last = performance.now();
+  let pending = 0;
   function frame(now: number) {
-    const dt = Math.min(now - last, 1000 / 60);
+    // Vaste stappen, onafhankelijk van de framerate (max. ~4 frames inhalen na een hapering)
+    pending = Math.min(pending + (now - last), STEP * 8);
     last = now;
     if (now - lastCheck > 500) {
       lastCheck = now;
       relayout();
     }
-    Engine.update(engine, dt);
+    while (pending >= STEP) {
+      step();
+      pending -= STEP;
+    }
 
     for (const it of items) {
       if (it.state === 'off') continue;
@@ -346,7 +376,7 @@ export function initGravityPile(container: HTMLElement, bombButton?: HTMLButtonE
           respawn(it);
           continue;
         }
-        const v = it.body.velocity;
+        const v = Body.getVelocity(it.body);
         const speed = Math.hypot(v.x, v.y);
         if (speed > MAX_SPEED) Body.setVelocity(it.body, { x: (v.x / speed) * MAX_SPEED, y: (v.y / speed) * MAX_SPEED });
       }
