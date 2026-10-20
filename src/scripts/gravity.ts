@@ -11,7 +11,7 @@ const MAX_PER_PILE_DESKTOP = 14;
 const MAX_PER_PILE_MOBILE = 8;
 const WALL = 200;
 /** Maximale snelheid (px per stap), zodat niets door de vloer schiet. */
-const MAX_SPEED = 60;
+const MAX_SPEED = 80;
 
 // Botsingscategorieën: thumbnails die wegvliegen botsen niet meer met de nieuwe
 const CAT_WALL = 0x0001;
@@ -37,7 +37,7 @@ export function initGravityPile(container: HTMLElement, bombButton?: HTMLButtonE
   // Extra iteraties + "slapen" houden de stapel stil zodra alles geland is
   const engine = Engine.create({ enableSleeping: true, positionIterations: 12, velocityIterations: 8 });
   // Zwaartekracht: hoger = zwaarder, ze vallen sneller en liggen sneller stil
-  engine.gravity.y = 2;
+  engine.gravity.y = 3;
 
   /*
    * Hoogte = het echt zichtbare deel van het scherm. Op gsm en in in-app browsers (LinkedIn, Instagram…)
