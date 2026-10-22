@@ -54,10 +54,6 @@ const sectionPhotos = sections.flatMap((s) =>
                 if (s) document.getElementById('live-logo-img').src = s;
               } catch (e) {}
             </script>
-            <div class="live-logo-bar">
-              <button type="button" id="live-logo-new">Genereer een nieuw logo</button>
-              <a href="/ubn-logo-generator/">Open de volledige generator →</a>
-            </div>
           </div>
         ) : (
           <Image
@@ -108,6 +104,15 @@ const sectionPhotos = sections.flatMap((s) =>
       {
         (sectionPhotos.length > 0 || gallery.length > 0 || extraClips.length > 0) && (
           <div class="case-photos">
+            {liveLogo && (
+              <div class="live-sheet">
+                <img id="live-sheet-img" class="photo" alt="10 willekeurig gegenereerde UBN-logo's" width="2000" height="660" />
+                <div class="live-logo-bar">
+                  <button type="button" id="live-sheet-new">Genereer 10 nieuwe logo's</button>
+                  <a href="/ubn-logo-generator/">Open de volledige generator →</a>
+                </div>
+              </div>
+            )}
             <Blocks blocks={sectionPhotos} />
             <Blocks blocks={extraClips} />
             {gallery.map((photo) => (
@@ -125,25 +130,25 @@ const sectionPhotos = sections.flatMap((s) =>
 </Base>
 
 <script>
-  import { randomLogoCanvas } from '../../scripts/ubn-logo';
+  import { randomLogoSheet } from '../../scripts/ubn-logo';
 
-  // Us By Night: knop om op de pagina zelf een nieuw logo te genereren
-  const liveImg = document.getElementById('live-logo-img') as HTMLImageElement | null;
-  const liveBtn = document.getElementById('live-logo-new') as HTMLButtonElement | null;
-  if (liveImg && liveBtn) {
-    liveBtn.addEventListener('click', () => {
-      liveBtn.disabled = true;
-      setTimeout(() => {
-        try {
-          const url = randomLogoCanvas(1200, 900, '#000000').toDataURL('image/webp', 0.92);
-          liveImg.removeAttribute('srcset');
-          liveImg.src = url;
-          try { sessionStorage.setItem('ubn-logo', url); } catch {}
-        } finally {
-          liveBtn.disabled = false;
-        }
-      }, 20);
-    });
+  // Us By Night: 10 willekeurig gegenereerde logo's, met een knop voor een nieuwe reeks
+  const sheetImg = document.getElementById('live-sheet-img') as HTMLImageElement | null;
+  const sheetBtn = document.getElementById('live-sheet-new') as HTMLButtonElement | null;
+  function newSheet() {
+    if (!sheetImg) return;
+    if (sheetBtn) sheetBtn.disabled = true;
+    setTimeout(() => {
+      try {
+        sheetImg.src = randomLogoSheet(5, 2, 400, 330, '#ffffff').toDataURL('image/webp', 0.9);
+      } finally {
+        if (sheetBtn) sheetBtn.disabled = false;
+      }
+    }, 20);
+  }
+  if (sheetImg) {
+    newSheet();
+    sheetBtn?.addEventListener('click', newSheet);
   }
 
   // Altijd bovenaan de case beginnen, ook als de browser een oude scrollpositie onthoudt
@@ -233,8 +238,18 @@ const sectionPhotos = sections.flatMap((s) =>
 
   .live-logo {
     display: grid;
-    gap: 0.9rem;
     justify-items: center;
+  }
+  .live-sheet {
+    display: grid;
+    gap: 0.9rem;
+    margin: 0 0 0.5rem;
+  }
+  .live-sheet img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 2000 / 660;
+    background: #fff;
   }
   .live-logo-img {
     background: #000;
@@ -251,8 +266,8 @@ const sectionPhotos = sections.flatMap((s) =>
     padding: 0.6rem 1.1rem;
     border: 0;
     border-radius: 999px;
-    background: var(--bg);
-    color: var(--ink);
+    background: var(--ink);
+    color: var(--bg);
     font: 500 0.95rem var(--font);
     cursor: pointer;
     box-shadow: 0 8px 24px -8px rgb(0 0 0 / 0.4);
@@ -262,12 +277,12 @@ const sectionPhotos = sections.flatMap((s) =>
     cursor: progress;
   }
   .live-logo-bar a {
-    color: var(--bg);
+    color: var(--ink);
     font: 500 0.95rem var(--font);
   }
   .live-logo-bar button:focus-visible,
   .live-logo-bar a:focus-visible {
-    outline: 2px solid var(--bg);
+    outline: 2px solid var(--ink);
     outline-offset: 3px;
   }
 

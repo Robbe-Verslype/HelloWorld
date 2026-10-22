@@ -280,3 +280,37 @@ export function randomLogoCanvas(width, height, background = '#000000') {
   ctx.drawImage(logo, Math.round((width - logo.width) / 2), Math.round((height - logo.height) / 2));
   return c;
 }
+
+/** Tekent één logo (cfg) gecentreerd in een vak op een bestaande context. */
+function drawLogoInBox(ctx, cfg, x, y, w, h, fill = 0.8) {
+  [cfg.tx, cfg.ty] = randomPlacement(cfg);
+  const g0 = geom(cfg, 100);
+  const F = 100 * Math.min((w * fill) / g0.W, (h * fill) / g0.H);
+  const logo = compose(renderBase(cfg, F), cfg, 'none');
+  ctx.drawImage(logo, Math.round(x + (w - logo.width) / 2), Math.round(y + (h - logo.height) / 2));
+}
+
+/**
+ * Blad met n willekeurige logo's (zoals de reeks in de guidelines):
+ * alle 6 vormen komen voor en geen enkel kleurpaar wordt herhaald.
+ */
+export function randomLogoSheet(cols = 5, rows = 2, cellW = 400, cellH = 330, background = '#ffffff') {
+  const n = cols * rows;
+  const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const shapes = [0, 1, 2, 3, 4, 5];
+  while (shapes.length < n) shapes.push(Math.floor(Math.random() * 6));
+  shuffle(shapes);
+  const pairs = [];
+  for (const a of COLORS) for (const b of COLORS) if (a.id !== b.id) pairs.push([a.id, b.id]);
+  shuffle(pairs);
+  const c = makeCanvas(cols * cellW, rows * cellH);
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = background;
+  ctx.fillRect(0, 0, c.width, c.height);
+  for (let k = 0; k < n; k++) {
+    const [inner, outer] = pairs[k % pairs.length];
+    const cfg = { shape: shapes[k], inner, outer, rot: 0, mirror: false, seed: 1 + Math.floor(Math.random() * 9999), tx: 0, ty: 0 };
+    drawLogoInBox(ctx, cfg, (k % cols) * cellW, Math.floor(k / cols) * cellH, cellW, cellH, 0.86);
+  }
+  return c;
+}
