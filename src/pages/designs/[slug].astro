@@ -100,14 +100,6 @@ const sectionPhotos = sections.flatMap((s) =>
         (sectionPhotos.length > 0 || gallery.length > 0 || extraClips.length > 0) && (
           <div class="case-photos">
             {liveLogo && <UbnGenerator />}
-            {liveLogo && (
-              <div class="live-sheet">
-                <img id="live-sheet-img" class="photo" alt="10 willekeurig gegenereerde UBN-logo's" width="2000" height="660" />
-                <div class="live-logo-bar">
-                  <button type="button" id="live-sheet-new">Genereer 10 nieuwe logo's</button>
-                </div>
-              </div>
-            )}
             <Blocks blocks={sectionPhotos} />
             <Blocks blocks={extraClips} />
             {gallery.map((photo) => (
@@ -125,7 +117,7 @@ const sectionPhotos = sections.flatMap((s) =>
 </Base>
 
 <script>
-  import { randomLogoSheet, randomLogoCanvas, screenGrainPx } from '../../scripts/ubn-logo';
+  import { randomLogoCanvas, screenGrainPx } from '../../scripts/ubn-logo';
 
   // Us By Night: logo bovenaan op schermresolutie tekenen (zelfde korrel als de generator).
   // Kom je van de homepage, dan is het hetzelfde logo als de thumbnail.
@@ -140,28 +132,6 @@ const sectionPhotos = sections.flatMap((s) =>
       heroImg.removeAttribute('srcset');
       heroImg.src = canvas.toDataURL('image/webp', 0.92);
     } catch {}
-  }
-
-  // Us By Night: 10 willekeurig gegenereerde logo's, met een knop voor een nieuwe reeks
-  const sheetImg = document.getElementById('live-sheet-img') as HTMLImageElement | null;
-  const sheetBtn = document.getElementById('live-sheet-new') as HTMLButtonElement | null;
-  function newSheet() {
-    if (!sheetImg) return;
-    if (sheetBtn) sheetBtn.disabled = true;
-    setTimeout(() => {
-      try {
-        const dpr = Math.min(2, window.devicePixelRatio || 1);
-        const cellW = Math.max(120, Math.round(((sheetImg.clientWidth || 680) * dpr) / 5));
-        const cellH = Math.round((cellW * 330) / 400);
-        sheetImg.src = randomLogoSheet(5, 2, cellW, cellH, '#ffffff', screenGrainPx()).toDataURL('image/webp', 0.92);
-      } finally {
-        if (sheetBtn) sheetBtn.disabled = false;
-      }
-    }, 20);
-  }
-  if (sheetImg) {
-    newSheet();
-    sheetBtn?.addEventListener('click', newSheet);
   }
 
   // Altijd bovenaan de case beginnen, ook als de browser een oude scrollpositie onthoudt
