@@ -1,0 +1,681 @@
+---
+// Interactieve UBN Logo Generator, ingebouwd in de Us By Night-case.
+// Gebruikt dezelfde render-engine als de thumbnail (src/scripts/ubn-logo.ts).
+---
+
+<section class="ug" aria-labelledby="ug-title">
+  <div class="ug-inner">
+    <header class="ug-head">
+      <h2 id="ug-title">Maak je eigen UBN-logo</h2>
+      <p>Kies een vorm en twee kleuren, sleep UBN op zijn plaats en download je logo. De generator houdt zich aan dezelfde regels als de brand guidelines.</p>
+    </header>
+
+    <div class="ug-main">
+      <div class="ug-controls" aria-label="Instellingen">
+        <div class="ug-group">
+          <button class="ug-btn ug-primary" type="button" id="ug-random">Genereer willekeurig logo</button>
+        </div>
+
+        <div class="ug-group">
+          <span class="ug-label">1 · Vorm</span>
+          <div class="ug-shapes" id="ug-shapes"></div>
+          <label class="ug-check"><input type="checkbox" id="ug-turn" /> Vorm draaien en spiegelen</label>
+          <div class="ug-row" id="ug-turn-row" hidden>
+            <button class="ug-btn" type="button" id="ug-rot">Draai 90°</button>
+            <button class="ug-btn" type="button" id="ug-mir" aria-pressed="false">Spiegel</button>
+          </div>
+        </div>
+
+        <div class="ug-group">
+          <span class="ug-label">2 · Kleuren</span>
+          <div class="ug-color-row"><span>Binnen</span><div class="ug-swatches" id="ug-inner"></div></div>
+          <div class="ug-color-row"><span>Buiten</span><div class="ug-swatches" id="ug-outer"></div></div>
+          <button class="ug-btn" type="button" id="ug-swap">Wissel binnen en buiten</button>
+        </div>
+
+        <div class="ug-group">
+          <span class="ug-label">3 · Woordmerk UBN</span>
+          <p class="ug-note">Sleep UBN in het logo. Een positie buiten de regels springt terug naar de dichtstbijzijnde geldige plek.</p>
+          <button class="ug-btn" type="button" id="ug-place">Nieuwe positie</button>
+        </div>
+
+        <div class="ug-group">
+          <span class="ug-label">Grain</span>
+          <button class="ug-btn" type="button" id="ug-seed">Nieuwe grain</button>
+        </div>
+
+        <div class="ug-group">
+          <span class="ug-label">Achtergrond</span>
+          <div class="ug-seg" id="ug-bg">
+            <button type="button" data-bg="black" aria-pressed="true">Zwart</button>
+            <button type="button" data-bg="white" aria-pressed="false">Wit</button>
+            <button type="button" data-bg="none" aria-pressed="false">Transparant</button>
+          </div>
+        </div>
+
+        <div class="ug-group">
+          <span class="ug-label">Downloaden als PNG</span>
+          <div class="ug-row">
+            <label for="ug-size" class="ug-note">Breedte</label>
+            <select id="ug-size" class="ug-btn ug-select">
+              <option value="1200">1200 px</option>
+              <option value="2400" selected>2400 px</option>
+              <option value="3600">3600 px</option>
+            </select>
+          </div>
+          <button class="ug-btn ug-primary" type="button" id="ug-download">Download logo</button>
+        </div>
+      </div>
+
+      <div class="ug-stage-col">
+        <div class="ug-stage" id="ug-stage-box" data-bg="black">
+          <canvas id="ug-stage" aria-label="Voorbeeld van het logo" tabindex="0"></canvas>
+          <span class="ug-busy" id="ug-busy" hidden>renderen…</span>
+        </div>
+        <div class="ug-rules" id="ug-rules"></div>
+        <span class="ug-code" id="ug-code"></span>
+      </div>
+    </div>
+  </div>
+  <div class="ug-toast" id="ug-toast" role="status" hidden></div>
+</section>
+
+<style>
+  .ug {
+    --ug-bg: #0c0b11;
+    --ug-panel: #15131c;
+    --ug-raise: #1d1a26;
+    --ug-line: #2b2836;
+    --ug-fg: #eeecf4;
+    --ug-muted: #9b97ab;
+    --ug-ok: #6afe15;
+    --ug-bad: #ff6b4a;
+    --ug-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    background: var(--ug-bg);
+    color: var(--ug-fg);
+    padding: 3rem 1rem;
+    font-family: var(--font);
+  }
+  @media (min-width: 800px) {
+    .ug {
+      padding: 4rem 3rem;
+    }
+  }
+  .ug *,
+  .ug *::before,
+  .ug *::after {
+    box-sizing: border-box;
+  }
+  .ug [hidden] {
+    display: none !important;
+  }
+  .ug-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: grid;
+    gap: 1.5rem;
+  }
+  .ug-head h2 {
+    margin: 0 0 0.4rem;
+    font-size: clamp(1.75rem, 4vw, 2.75rem);
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+  .ug-head p {
+    margin: 0;
+    color: var(--ug-muted);
+    max-width: 60ch;
+  }
+  .ug-main {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+    align-items: start;
+  }
+  @media (min-width: 900px) {
+    .ug-main {
+      grid-template-columns: 320px minmax(0, 1fr);
+    }
+  }
+  .ug-controls {
+    display: grid;
+    gap: 16px;
+    background: var(--ug-panel);
+    border: 1px solid var(--ug-line);
+    border-radius: 10px;
+    padding: 16px;
+  }
+  @media (max-width: 899px) {
+    .ug-stage-col {
+      order: -1;
+    }
+  }
+  .ug-group {
+    display: grid;
+    gap: 8px;
+  }
+  .ug-group + .ug-group {
+    border-top: 1px solid var(--ug-line);
+    padding-top: 16px;
+  }
+  .ug-label {
+    font-family: var(--ug-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ug-muted);
+  }
+  .ug-note {
+    margin: 0;
+    color: var(--ug-muted);
+    font-size: 0.85rem;
+  }
+  .ug-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+  .ug-btn {
+    font: 600 0.9rem var(--font);
+    color: var(--ug-fg);
+    background: var(--ug-raise);
+    border: 1px solid var(--ug-line);
+    border-radius: 8px;
+    padding: 9px 12px;
+    cursor: pointer;
+  }
+  .ug-btn:hover {
+    border-color: #4a4558;
+  }
+  .ug-btn:disabled {
+    opacity: 0.6;
+    cursor: progress;
+  }
+  .ug-primary {
+    background: var(--ug-fg);
+    color: var(--ug-bg);
+    border-color: var(--ug-fg);
+    font-weight: 700;
+  }
+  .ug-primary:hover {
+    background: #fff;
+  }
+  .ug-btn[aria-pressed='true'] {
+    border-color: var(--ug-fg);
+  }
+  .ug-select {
+    padding: 7px 9px;
+    font-weight: 500;
+  }
+  .ug button:focus-visible,
+  .ug select:focus-visible,
+  .ug input:focus-visible,
+  .ug canvas:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+  }
+  .ug-shapes {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .ug :global(.ug-shape) {
+    background: var(--ug-raise);
+    border: 1px solid var(--ug-line);
+    border-radius: 8px;
+    padding: 6px;
+    aspect-ratio: 1.25;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    color: var(--ug-muted);
+    position: relative;
+  }
+  .ug :global(.ug-shape svg) {
+    width: 100%;
+    height: 100%;
+  }
+  .ug :global(.ug-shape[aria-pressed='true']) {
+    border-color: var(--ug-fg);
+    color: var(--ug-fg);
+    background: #252130;
+  }
+  .ug :global(.ug-shape span) {
+    position: absolute;
+    top: 4px;
+    left: 7px;
+    font-family: var(--ug-mono);
+    font-size: 10px;
+  }
+  .ug-check {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    cursor: pointer;
+    color: var(--ug-muted);
+  }
+  .ug-check input {
+    accent-color: var(--ug-fg);
+    width: 16px;
+    height: 16px;
+  }
+  .ug-color-row {
+    display: grid;
+    grid-template-columns: 56px 1fr;
+    align-items: center;
+    gap: 8px;
+  }
+  .ug-swatches {
+    display: flex;
+    gap: 8px;
+  }
+  .ug :global(.ug-sw) {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    padding: 0;
+    position: relative;
+  }
+  .ug :global(.ug-sw[aria-pressed='true']) {
+    box-shadow: 0 0 0 2px var(--ug-bg), 0 0 0 4px var(--ug-fg);
+  }
+  .ug :global(.ug-sw:disabled) {
+    opacity: 0.22;
+    cursor: not-allowed;
+  }
+  .ug :global(.ug-sw:disabled::after) {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 4px;
+    bottom: 4px;
+    width: 2px;
+    background: var(--ug-fg);
+    transform: rotate(45deg);
+  }
+  .ug-seg {
+    display: inline-flex;
+    border: 1px solid var(--ug-line);
+    border-radius: 8px;
+    overflow: hidden;
+    width: max-content;
+  }
+  .ug-seg button {
+    font: 500 0.9rem var(--font);
+    background: var(--ug-raise);
+    color: var(--ug-muted);
+    border: 0;
+    padding: 7px 11px;
+    cursor: pointer;
+  }
+  .ug-seg button + button {
+    border-left: 1px solid var(--ug-line);
+  }
+  .ug-seg button[aria-pressed='true'] {
+    background: var(--ug-fg);
+    color: var(--ug-bg);
+    font-weight: 600;
+  }
+  .ug-stage-col {
+    display: grid;
+    gap: 12px;
+    min-width: 0;
+  }
+  .ug-stage {
+    position: relative;
+    border: 1px solid var(--ug-line);
+    border-radius: 10px;
+    overflow: hidden;
+    min-height: 300px;
+    display: grid;
+    place-items: center;
+    padding: 18px;
+  }
+  .ug-stage[data-bg='white'] {
+    background: #fff;
+  }
+  .ug-stage[data-bg='black'] {
+    background: #000;
+  }
+  .ug-stage[data-bg='none'] {
+    background-color: #2a2833;
+    background-image: linear-gradient(45deg, #34313e 25%, transparent 25%, transparent 75%, #34313e 75%),
+      linear-gradient(45deg, #34313e 25%, transparent 25%, transparent 75%, #34313e 75%);
+    background-size: 22px 22px;
+    background-position: 0 0, 11px 11px;
+  }
+  #ug-stage {
+    max-width: 100%;
+    max-height: 64vh;
+    height: auto;
+    touch-action: none;
+    cursor: grab;
+    display: block;
+  }
+  #ug-stage.dragging {
+    cursor: grabbing;
+  }
+  .ug-busy {
+    position: absolute;
+    right: 12px;
+    top: 10px;
+    font-family: var(--ug-mono);
+    font-size: 11px;
+    color: #888;
+  }
+  .ug-rules {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 8px;
+  }
+  .ug :global(.ug-rule) {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    background: var(--ug-panel);
+    border: 1px solid var(--ug-line);
+    border-radius: 8px;
+    padding: 9px 11px;
+  }
+  .ug :global(.ug-rule .dot) {
+    flex: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--ug-bg);
+    background: var(--ug-ok);
+    margin-top: 1px;
+  }
+  .ug :global(.ug-rule[data-ok='false']) {
+    border-color: #7a3a30;
+  }
+  .ug :global(.ug-rule[data-ok='false'] .dot) {
+    background: var(--ug-bad);
+  }
+  .ug :global(.ug-rule b) {
+    display: block;
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+  .ug :global(.ug-rule small) {
+    color: var(--ug-muted);
+  }
+  .ug-code {
+    font-family: var(--ug-mono);
+    font-size: 12px;
+    color: var(--ug-muted);
+  }
+  .ug-toast {
+    position: fixed;
+    left: 50%;
+    bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+    transform: translateX(-50%);
+    background: var(--ug-fg);
+    color: var(--ug-bg);
+    padding: 9px 14px;
+    border-radius: 8px;
+    font-weight: 600;
+    z-index: 50;
+  }
+</style>
+
+<script>
+  // @ts-nocheck
+  import { DATA, COLORS, geom, renderBase, compose, analysis, randomPlacement, nearestValid } from '../scripts/ubn-logo';
+
+  const $ = (id) => document.getElementById(id);
+  const stage = $('ug-stage');
+  if (stage) init();
+
+  function init() {
+    const DPR = Math.min(2, window.devicePixelRatio || 1);
+    const PREVIEW_F = Math.round(96 * DPR);
+    let state = null;
+    let bg = 'black';
+    let allowTurn = false;
+    let base = null;
+
+    const colorName = (id) => COLORS.find((c) => c.id === id).name;
+    const cfgCode = (c) =>
+      `vorm ${c.shape + 1} · ${colorName(c.inner).toLowerCase()} binnen / ${colorName(c.outer).toLowerCase()} buiten` +
+      (c.rot || c.mirror ? ` · ${c.rot * 90}°${c.mirror ? ' gespiegeld' : ''}` : '') +
+      ` · grain #${c.seed}`;
+    const fileName = (c) => `UBN_vorm${c.shape + 1}_${colorName(c.inner).toLowerCase()}-${colorName(c.outer).toLowerCase()}.png`;
+
+    // vormknoppen
+    DATA.shapes.forEach((s, i) => {
+      const b = document.createElement('button');
+      b.className = 'ug-shape';
+      b.type = 'button';
+      b.setAttribute('aria-pressed', 'false');
+      b.setAttribute('aria-label', 'Vorm ' + (i + 1));
+      b.innerHTML = `<span>${i + 1}</span><svg viewBox="-0.3 -0.3 6.2 6.2" aria-hidden="true"><path d="${s.d}" fill="currentColor" transform="translate(${(5.6 - s.w) / 2} ${(5.6 - s.h) / 2})"/></svg>`;
+      b.addEventListener('click', () => {
+        state.shape = i;
+        state.rot = 0;
+        state.mirror = false;
+        reposition();
+        refresh();
+      });
+      $('ug-shapes').appendChild(b);
+    });
+
+    // kleurknoppen
+    for (const which of ['inner', 'outer']) {
+      COLORS.forEach((c) => {
+        const b = document.createElement('button');
+        b.className = 'ug-sw';
+        b.type = 'button';
+        b.style.background = c.hex;
+        b.dataset.id = c.id;
+        b.setAttribute('aria-label', `${which === 'inner' ? 'Binnenkleur' : 'Buitenkleur'} ${c.name}`);
+        b.addEventListener('click', () => {
+          state[which] = c.id;
+          refresh();
+        });
+        $('ug-' + which).appendChild(b);
+      });
+    }
+
+    function syncControls() {
+      [...$('ug-shapes').children].forEach((b, i) => b.setAttribute('aria-pressed', String(i === state.shape)));
+      for (const which of ['inner', 'outer']) {
+        const other = which === 'inner' ? state.outer : state.inner;
+        [...$('ug-' + which).children].forEach((b) => {
+          b.setAttribute('aria-pressed', String(b.dataset.id === state[which]));
+          b.disabled = b.dataset.id === other;
+          b.title = b.disabled ? 'Binnen- en buitenkleur mogen niet dezelfde zijn' : '';
+        });
+      }
+      $('ug-turn-row').hidden = !allowTurn;
+      $('ug-mir').setAttribute('aria-pressed', String(state.mirror));
+      [...$('ug-bg').children].forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.bg === bg)));
+      $('ug-stage-box').dataset.bg = bg;
+      $('ug-code').textContent = cfgCode(state);
+    }
+
+    function renderRules() {
+      const st = analysis(state).check(state.tx, state.ty);
+      const rules = [
+        { ok: true, t: '1 van de 6 vormen', s: 'Vorm ' + (state.shape + 1) },
+        { ok: state.inner !== state.outer, t: '2 verschillende kleuren', s: `${colorName(state.inner)} binnen, ${colorName(state.outer)} buiten` },
+        { ok: st.off, t: 'UBN off-center', s: st.off ? 'Niet in het midden van de vorm' : 'Te dicht bij het midden' },
+        { ok: st.ring, t: 'Binnen de binnenste ring', s: st.ring ? 'UBN raakt de buitenring niet' : 'UBN raakt de buitenring' },
+        { ok: true, t: 'Vaste tekstgrootte, wit', s: 'Stretch Pro, altijd dezelfde grootte' },
+      ];
+      $('ug-rules').innerHTML = rules
+        .map((r) => `<div class="ug-rule" data-ok="${r.ok}"><span class="dot" aria-hidden="true">${r.ok ? '✓' : '!'}</span><div><b>${r.t}</b><small>${r.s}</small></div></div>`)
+        .join('');
+    }
+
+    function draw() {
+      if (!base) return;
+      compose(base, state, 'none', stage);
+      renderRules();
+    }
+
+    let token = 0;
+    function refresh() {
+      syncControls();
+      $('ug-busy').hidden = false;
+      const tok = ++token;
+      requestAnimationFrame(() =>
+        setTimeout(() => {
+          if (tok !== token) return;
+          base = renderBase(state, PREVIEW_F);
+          stage.style.width = Math.round(base.W / DPR) + 'px';
+          draw();
+          $('ug-busy').hidden = true;
+        }, 0),
+      );
+    }
+
+    function reposition() {
+      [state.tx, state.ty] = randomPlacement(state);
+    }
+
+    function randomCfg() {
+      const i = Math.floor(Math.random() * 4);
+      let o = Math.floor(Math.random() * 3);
+      if (o >= i) o++;
+      const c = { shape: Math.floor(Math.random() * 6), inner: COLORS[i].id, outer: COLORS[o].id, rot: 0, mirror: false, seed: 1 + Math.floor(Math.random() * 9999), tx: 0, ty: 0 };
+      if (allowTurn) {
+        c.rot = Math.floor(Math.random() * 4);
+        c.mirror = Math.random() < 0.5;
+      }
+      [c.tx, c.ty] = randomPlacement(c);
+      return c;
+    }
+
+    // UBN slepen
+    let drag = null;
+    stage.addEventListener('pointerdown', (e) => {
+      if (!base) return;
+      stage.setPointerCapture(e.pointerId);
+      stage.classList.add('dragging');
+      drag = { x: e.clientX, y: e.clientY, tx: state.tx, ty: state.ty };
+    });
+    stage.addEventListener('pointermove', (e) => {
+      if (!drag) return;
+      const k = base.W / stage.getBoundingClientRect().width;
+      state.tx = drag.tx + ((e.clientX - drag.x) * k) / base.F;
+      state.ty = drag.ty + ((e.clientY - drag.y) * k) / base.F;
+      draw();
+    });
+    function endDrag() {
+      if (!drag) return;
+      drag = null;
+      stage.classList.remove('dragging');
+      const st = analysis(state).check(state.tx, state.ty);
+      if (!st.ring || !st.off) {
+        [state.tx, state.ty] = nearestValid(state, state.tx, state.ty);
+        toast('UBN is teruggezet binnen de regels');
+      }
+      draw();
+    }
+    stage.addEventListener('pointerup', endDrag);
+    stage.addEventListener('pointercancel', endDrag);
+    stage.addEventListener('keydown', (e) => {
+      const step = e.shiftKey ? 0.2 : 0.05;
+      const m = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] }[e.key];
+      if (!m) return;
+      e.preventDefault();
+      const nx = state.tx + m[0];
+      const ny = state.ty + m[1];
+      const st = analysis(state).check(nx, ny);
+      if (st.ring && st.off) {
+        state.tx = nx;
+        state.ty = ny;
+        draw();
+      }
+    });
+
+    // knoppen
+    $('ug-random').addEventListener('click', () => {
+      state = randomCfg();
+      refresh();
+    });
+    $('ug-swap').addEventListener('click', () => {
+      [state.inner, state.outer] = [state.outer, state.inner];
+      refresh();
+    });
+    $('ug-place').addEventListener('click', () => {
+      reposition();
+      draw();
+    });
+    $('ug-seed').addEventListener('click', () => {
+      state.seed = 1 + Math.floor(Math.random() * 9999);
+      refresh();
+    });
+    $('ug-turn').addEventListener('change', (e) => {
+      allowTurn = e.target.checked;
+      if (!allowTurn && (state.rot || state.mirror)) {
+        state.rot = 0;
+        state.mirror = false;
+        reposition();
+        refresh();
+      } else syncControls();
+    });
+    $('ug-rot').addEventListener('click', () => {
+      state.rot = (state.rot + 1) % 4;
+      reposition();
+      refresh();
+    });
+    $('ug-mir').addEventListener('click', () => {
+      state.mirror = !state.mirror;
+      reposition();
+      refresh();
+    });
+    [...$('ug-bg').children].forEach((b) =>
+      b.addEventListener('click', () => {
+        bg = b.dataset.bg;
+        syncControls();
+      }),
+    );
+
+    // downloaden
+    let toastTimer;
+    function toast(msg) {
+      const t = $('ug-toast');
+      t.textContent = msg;
+      t.hidden = false;
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => (t.hidden = true), 2600);
+    }
+    $('ug-download').addEventListener('click', async () => {
+      const btn = $('ug-download');
+      btn.disabled = true;
+      btn.textContent = 'Bezig…';
+      await new Promise((r) => setTimeout(r, 30));
+      try {
+        const width = +$('ug-size').value;
+        const g0 = geom(state, 100);
+        const b = renderBase(state, (100 * width) / g0.W);
+        const c = compose(b, state, bg);
+        const blob = await new Promise((r) => c.toBlob(r, 'image/png'));
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName(state);
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 4000);
+        toast('Gedownload: ' + fileName(state));
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Download logo';
+      }
+    });
+
+    state = randomCfg();
+    refresh();
+  }
+</script>

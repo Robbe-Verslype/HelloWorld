@@ -2,6 +2,7 @@
 import { Image } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
 import Blocks from '../../components/Blocks.astro';
+import UbnGenerator from '../../components/UbnGenerator.astro';
 import { getDesigns, isMedia, type Design } from '../../lib/designs';
 
 // Maakt automatisch één pagina per mapje
@@ -67,6 +68,8 @@ const sectionPhotos = sections.flatMap((s) =>
       }
     </header>
 
+    {liveLogo && <UbnGenerator />}
+
     <div class="case">
       {/* Links: tekst en dropdowns */}
       <div class="case-text">
@@ -109,7 +112,6 @@ const sectionPhotos = sections.flatMap((s) =>
                 <img id="live-sheet-img" class="photo" alt="10 willekeurig gegenereerde UBN-logo's" width="2000" height="660" />
                 <div class="live-logo-bar">
                   <button type="button" id="live-sheet-new">Genereer 10 nieuwe logo's</button>
-                  <a href="/ubn-logo-generator/">Open de volledige generator →</a>
                 </div>
               </div>
             )}

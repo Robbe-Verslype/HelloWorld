@@ -314,3 +314,5 @@ export function randomLogoSheet(cols = 5, rows = 2, cellW = 400, cellH = 330, ba
   }
   return c;
 }
+
+export { DATA, COLORS, MARGIN, geom, renderBase, compose, analysis, randomPlacement, nearestValid };
