@@ -148,7 +148,9 @@ function renderBase(cfg, F) {
   const halo = hexToRgb('#ffffff'), oc = DATA.colors[cfg.outer];
   const hc = [0, 1, 2].map(k => oc[k] * 0.6 + 255 * 0.4);
   // grain cells are 1/123.5 of the font size; below 1px they average out, so soften instead
-  const cs = Math.max(1, SPECK * F), gk = Math.min(1, SPECK * F), seed = cfg.seed;
+  // grainPx: vaste korrelgrootte in pixels (voor beelden op het scherm), anders relatief aan de lettergrootte
+  const cell = cfg.grainPx || SPECK * F;
+  const cs = Math.max(1, cell), gk = Math.min(1, cell), seed = cfg.seed;
   for (let y = 0; y < H; y++) {
     const gy = Math.floor((y - g.cy) / cs);
     for (let x = 0; x < W; x++) {
@@ -261,13 +263,24 @@ function compose(base, cfg, bg, target) {
 
 
 /** Willekeurig logo dat aan alle regels voldoet, gecentreerd op een canvas met achtergrond. */
-export function randomLogoCanvas(width, height, background = '#000000') {
-  const ids = COLORS.map((c) => c.id);
-  const i = Math.floor(Math.random() * 4);
-  let o = Math.floor(Math.random() * 3);
-  if (o >= i) o++;
-  const cfg = { shape: Math.floor(Math.random() * 6), inner: ids[i], outer: ids[o], rot: 0, mirror: false, seed: 1 + Math.floor(Math.random() * 9999), tx: 0, ty: 0 };
-  [cfg.tx, cfg.ty] = randomPlacement(cfg);
+/** Korrelgrootte (in canvaspixels) zoals in de generator op het scherm: 96 css-px per lettergrootte. */
+export function screenGrainPx() {
+  const dpr = Math.min(2, (typeof window !== 'undefined' && window.devicePixelRatio) || 1);
+  return (96 / 123.5) * dpr;
+}
+
+/** Logo gecentreerd op een canvas. opts.cfg = bestaand logo hertekenen, opts.grainPx = korrelgrootte. */
+export function randomLogoCanvas(width, height, background = '#000000', opts = {}) {
+  let cfg = opts.cfg;
+  if (!cfg) {
+    const ids = COLORS.map((c) => c.id);
+    const i = Math.floor(Math.random() * 4);
+    let o = Math.floor(Math.random() * 3);
+    if (o >= i) o++;
+    cfg = { shape: Math.floor(Math.random() * 6), inner: ids[i], outer: ids[o], rot: 0, mirror: false, seed: 1 + Math.floor(Math.random() * 9999), tx: 0, ty: 0 };
+    [cfg.tx, cfg.ty] = randomPlacement(cfg);
+  }
+  cfg = { ...cfg, grainPx: opts.grainPx };
   // logo vult ongeveer 78% van de breedte of 82% van de hoogte
   const g0 = geom(cfg, 100);
   const F = 100 * Math.min((width * 0.78) / g0.W, (height * 0.82) / g0.H);
@@ -278,6 +291,8 @@ export function randomLogoCanvas(width, height, background = '#000000') {
   ctx.fillRect(0, 0, width, height);
   const logo = compose(base, cfg, 'none');
   ctx.drawImage(logo, Math.round((width - logo.width) / 2), Math.round((height - logo.height) / 2));
+  const { grainPx, ...plain } = cfg;
+  c.cfg = plain;
   return c;
 }
 
@@ -294,7 +309,7 @@ function drawLogoInBox(ctx, cfg, x, y, w, h, fill = 0.8) {
  * Blad met n willekeurige logo's (zoals de reeks in de guidelines):
  * alle 6 vormen komen voor en geen enkel kleurpaar wordt herhaald.
  */
-export function randomLogoSheet(cols = 5, rows = 2, cellW = 400, cellH = 330, background = '#ffffff') {
+export function randomLogoSheet(cols = 5, rows = 2, cellW = 400, cellH = 330, background = '#ffffff', grainPx = undefined) {
   const n = cols * rows;
   const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
   const shapes = [0, 1, 2, 3, 4, 5];
@@ -309,7 +324,7 @@ export function randomLogoSheet(cols = 5, rows = 2, cellW = 400, cellH = 330, ba
   ctx.fillRect(0, 0, c.width, c.height);
   for (let k = 0; k < n; k++) {
     const [inner, outer] = pairs[k % pairs.length];
-    const cfg = { shape: shapes[k], inner, outer, rot: 0, mirror: false, seed: 1 + Math.floor(Math.random() * 9999), tx: 0, ty: 0 };
+    const cfg = { shape: shapes[k], inner, outer, rot: 0, mirror: false, seed: 1 + Math.floor(Math.random() * 9999), tx: 0, ty: 0, grainPx };
     drawLogoInBox(ctx, cfg, (k % cols) * cellW, Math.floor(k / cols) * cellH, cellW, cellH, 0.86);
   }
   return c;

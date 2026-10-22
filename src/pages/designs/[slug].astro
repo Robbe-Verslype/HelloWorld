@@ -49,12 +49,6 @@ const sectionPhotos = sections.flatMap((s) =>
               id="live-logo-img"
               style={`view-transition-name: thumb-${design.slug}`}
             />
-            <script is:inline>
-              try {
-                var s = sessionStorage.getItem('ubn-logo');
-                if (s) document.getElementById('live-logo-img').src = s;
-              } catch (e) {}
-            </script>
           </div>
         ) : (
           <Image
@@ -131,7 +125,22 @@ const sectionPhotos = sections.flatMap((s) =>
 </Base>
 
 <script>
-  import { randomLogoSheet } from '../../scripts/ubn-logo';
+  import { randomLogoSheet, randomLogoCanvas, screenGrainPx } from '../../scripts/ubn-logo';
+
+  // Us By Night: logo bovenaan op schermresolutie tekenen (zelfde korrel als de generator).
+  // Kom je van de homepage, dan is het hetzelfde logo als de thumbnail.
+  const heroImg = document.getElementById('live-logo-img') as HTMLImageElement | null;
+  if (heroImg) {
+    let cfg;
+    try { cfg = JSON.parse(sessionStorage.getItem('ubn-logo') || 'null'); } catch {}
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const w = Math.max(300, Math.round((heroImg.clientWidth || 600) * dpr));
+    try {
+      const canvas = randomLogoCanvas(w, Math.round((w * 3) / 4), '#000000', { cfg: cfg && typeof cfg.shape === 'number' ? cfg : undefined, grainPx: screenGrainPx() });
+      heroImg.removeAttribute('srcset');
+      heroImg.src = canvas.toDataURL('image/webp', 0.92);
+    } catch {}
+  }
 
   // Us By Night: 10 willekeurig gegenereerde logo's, met een knop voor een nieuwe reeks
   const sheetImg = document.getElementById('live-sheet-img') as HTMLImageElement | null;
@@ -141,7 +150,10 @@ const sectionPhotos = sections.flatMap((s) =>
     if (sheetBtn) sheetBtn.disabled = true;
     setTimeout(() => {
       try {
-        sheetImg.src = randomLogoSheet(5, 2, 400, 330, '#ffffff').toDataURL('image/webp', 0.9);
+        const dpr = Math.min(2, window.devicePixelRatio || 1);
+        const cellW = Math.max(120, Math.round(((sheetImg.clientWidth || 680) * dpr) / 5));
+        const cellH = Math.round((cellW * 330) / 400);
+        sheetImg.src = randomLogoSheet(5, 2, cellW, cellH, '#ffffff', screenGrainPx()).toDataURL('image/webp', 0.92);
       } finally {
         if (sheetBtn) sheetBtn.disabled = false;
       }

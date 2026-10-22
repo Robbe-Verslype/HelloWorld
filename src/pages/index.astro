@@ -223,7 +223,7 @@ const items = await Promise.all(
 <script>
   import { initGravityPile } from '../scripts/gravity';
 
-  import { randomLogoCanvas } from '../scripts/ubn-logo';
+  import { randomLogoCanvas, screenGrainPx } from '../scripts/ubn-logo';
 
   const pile = document.getElementById('pile');
   if (pile) initGravityPile(pile, document.querySelector<HTMLButtonElement>('#bomb'));
@@ -233,11 +233,13 @@ const items = await Promise.all(
   if (ubnImg) {
     setTimeout(() => {
       try {
-        const url = randomLogoCanvas(800, 600, '#000000').toDataURL('image/webp', 0.9);
+        const dpr = Math.min(2, window.devicePixelRatio || 1);
+        const w = Math.max(200, Math.round((ubnImg.clientWidth || 300) * dpr));
+        const canvas = randomLogoCanvas(w, Math.round((w * 3) / 4), '#000000', { grainPx: screenGrainPx() });
         ubnImg.removeAttribute('srcset');
-        ubnImg.src = url;
+        ubnImg.src = canvas.toDataURL('image/webp', 0.92);
         // zelfde logo bovenaan de case tonen als je erop klikt
-        try { sessionStorage.setItem('ubn-logo', url); } catch {}
+        try { sessionStorage.setItem('ubn-logo', JSON.stringify(canvas.cfg)); } catch {}
       } catch {
         // lukt het niet, dan blijft de vaste cover staan
       }
