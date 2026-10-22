@@ -6,55 +6,58 @@ Tags: dynamic logo, logo design, branding
 Kleur: #131217
 
 --- De klant + opdracht
-Us By Night is "the design conference masquerading as one huge party": een creatief festival in Antwerpen, opgericht door Rizon Parein. Het festival is speels, eigenzinnig en energiek, maar de visuele identiteit is sober: zwart-wit, een uitgerekt woordmerk en Helvetica. Toen ik er zelf rondliep, viel de identiteit nauwelijks op tussen alle kleurrijke projecten, posters en lichten.
+Us By Night is "the design conference masquerading as one huge party": een creatief festival in Antwerpen, opgericht door Rizon Parein. De "Us" staat voor de community. Bezoekers gaan naar huis met nieuwe creatieve ideeën. Het festival is "built to play, inspire and reenergize": speels, eigenzinnig en energiek.
 
-De opdracht voor Minor Brand Identity: herontwerp het logo als een dynamisch logosysteem. Het moet variëren, maar jaar na jaar herkenbaar blijven als één reeks.
+De opdracht voor Minor Brand Identity: herontwerp het logo van UBN als een dynamisch logosysteem.
+
+# De huidige identiteit
+De identiteit veranderde doorheen de jaren een paar keer, maar bleef telkens sober. Altijd een combinatie van twee kleuren, de laatste jaren zelfs zwart en wit, met horizontale lijnen die steeds terugkomen. Het logo ging van UBN in horizontale rechthoekige volumes naar een uitgerekt woordmerk, gecombineerd met Helvetica. Wellicht bewust, om de aandacht niet weg te nemen van de projecten en lezingen.
+
+# Wat ik zag en hoorde
+Op het festival zelf viel de identiteit nauwelijks op. Het zwart-wit staat in groot contrast met alle kleurrijke foto's, posters en lichten. Dat laat ruimte voor de projecten, maar de creatieve identiteit van het festival komt er niet in terug.
+
+Klasgenoten zeiden hetzelfde: "het logo is niet opvallend genoeg", "ik vind het te clean", "ik vind het te simpel en ik mis kleur". Online las ik: "very minimal, with a sporty New Balance feel".
+
+Voor een creatief festival vond ik dat een gemiste kans. Een dynamisch logo past veel beter bij een festival dat creatievelingen wil prikkelen.
 
 --- Manier van aanpak
+# Dynamische logo's ontleden
+Ik analyseerde dynamische logo's zoals die van de Creative Belgium Awards, NYC, Monier, het NAI en ICH. Telkens zocht ik welke bouwstenen vast blijven en welke variëren, zoals vormen, kleuren, beelden of de plaats van letters. Mijn conclusie: er moet een vast element zijn om herkenbaar te blijven, en sets van vormen die je kan combineren geven veel mogelijkheden.
+
+# Eerste concepten
+Ik werkte drie richtingen uit. In de eerste koppelde ik eigenschappen van het festival aan het logo: de avond bepaalt de kleur, de discipline de vorm en het podium de lijnvoering. De tweede draaide rond co-creatie: bezoekers ontwerpen zelf de logoset voor het jaar erna, met sliders en regels die wij opleggen. De derde ging over vervorming: je komt anders buiten dan je binnenkwam.
+
+De feedback: co-creatie is interessant, maar het eindresultaat moet bij elkaar horen en jaar na jaar herkenbaar blijven.
+
 # Concept: creativity is contagious
-Uit mijn mindmap koos ik drie woorden: living, restless en ever-evolving. Creativiteit is besmettelijk: mensen inspireren elkaar en ideeën verspreiden zich zonder dat je ze kan tegenhouden. Dat vertaalde ik naar kleurrijke schimmel. Zoals schimmel zich vanuit één kern verspreidt en telkens een eigen, onvoorspelbare vorm aanneemt, zo verspreidt creativiteit zich van persoon tot persoon tijdens het festival. Met felle kleuren haal ik de negatieve klank van schimmel weg.
+Uit een mindmap over UBN koos ik drie woorden: living, restless en ever-evolving. Wat is levend, rusteloos en altijd in beweging? Vuur, zwermen vogels, wolken, rook, noorderlicht, cellen en schimmel. Ik koos schimmel. Creativiteit is besmettelijk: mensen inspireren elkaar en ideeën verspreiden zich zonder dat je ze kan tegenhouden. Zoals schimmel zich vanuit één kern verspreidt en telkens een eigen, onvoorspelbare vorm aanneemt, zo verspreidt creativiteit zich van persoon tot persoon tijdens het festival.
 
-# De vormen
-Elke vorm start vanuit 3 tot 6 punten van verschillende grootte. Die verbond ik en de oppervlakte arceerde ik. Daarna tekende ik erover met de blob brush tool en gaf ik de rand met roughen een afgeronde zigzaglijn. Zo kwam ik tot zes organische vormen in dezelfde vormentaal.
-
-[1-schetsen-punten.webp | Eerste schetsen: vormen opbouwen vanuit 3 tot 6 punten.]
-
-[5-vormen-schetsen.webp | Van schets naar vector met de blob brush tool en roughen.]
+Inspiratie vond ik bij een community die kleurrijke schimmels kweekt als kunst. Met felle kleuren haal ik de negatieve klank van schimmel weg. Bij het tweede consult kwam het idee om een kleurenset en een vormenset te maken, als een pool waaruit telkens een combinatie gekozen wordt.
 
 # De schimmel
-Na veel testen met blurs en grains vond ik de juiste appearance: twee vullingen over elkaar, een gaussian blur en inner glow op de bovenste vulling en een grain over het geheel. Het woordmerk blijft altijd scherp.
+Na veel testen met blurs en grains vond ik de juiste appearance: twee vullingen over elkaar, een gaussian blur en inner glow op de bovenste vulling en een grain over het geheel. In de eerste testen werd ook de tekst door de schimmel opgeslokt. Dat effect vond ik leuk, maar de tekst werd te wazig om herkenbaar te blijven. Daarom blijft het woordmerk altijd scherp.
 
-[2-eerste-testen.webp | Eerste visuele testen van de schimmel.]
+# De vormen
+Elke vorm start vanuit 3 tot 6 punten van verschillende grootte. Hoe meer punten, hoe meer detail. Die punten verbond ik en de oppervlakte arceerde ik. Daarna tekende ik erover met de blob brush tool en gaf ik de rand met roughen een afgeronde zigzaglijn. Zo kwam ik tot zes organische vormen in dezelfde vormentaal.
 
-# Kleur
-Na een kleurtest koos ik vier kleuren: paars, groen, oranje en blauw. Elke kleur mag zowel binnen als buiten, maar nooit dezelfde kleur binnen en buiten. UBN in het zwart voelde te ingetogen, wit past beter bij het feestje dat UBN is.
-
-[3-kleurtest.webp | Kleurtest op de schimmel.]
-
-[4-kleurenpalet.webp | Het uiteindelijke kleurenpalet en de combinaties.]
-
-[6-vormen-in-kleur.webp | De zes vormen getest in verschillende kleuren.]
+# Kleur en typografie
+Na een kleurtest koos ik vier kleuren: paars, groen, oranje en blauw. Elke kleur mag zowel binnen als buiten, maar nooit dezelfde kleur binnen en buiten. UBN in het zwart voelde te ingetogen. Wit past beter bij het feestje dat UBN is. Na het testen van verschillende fonts en groottes koos ik Stretch Pro, in een vaste grootte.
 
 --- Het resultaat
 # Het systeem
-Het logo werkt met drie regels: kies 1 van de 6 vormen, kies een combinatie van 2 kleuren en plaats "UBN" off-center binnen de binnenste ring, zonder de tekstgrootte aan te passen. Het woordmerk staat vast en is altijd wit. Doordat het telkens ergens anders in de vorm staat, ontstaat er variatie, terwijl het logo herkenbaar blijft.
+Het logo werkt met drie regels: kies 1 van de 6 vormen, kies een combinatie van 2 kleuren en plaats "UBN" off-center binnen de binnenste ring, zonder de tekstgrootte aan te passen. Door de vaste vormentaal en het vaste woordmerk blijven alle logo's één geheel. Doordat UBN telkens ergens anders staat, ontstaat er variatie die de "ever-changing" identiteit van UBN benadrukt.
 
-[7-brand-guidelines.webp | De mini brand guidelines.]
+Voor publicaties in zwart-wit of wanneer het logo minder mag opvallen, testte ik ook zwart-witvarianten.
 
-[8-tien-logos.webp | 10 logovariaties uit hetzelfde systeem.]
+# Zelf een logo maken
+Het logo bovenaan deze pagina wordt bij elk bezoek opnieuw gegenereerd volgens dezelfde regels. Klik op "Genereer een nieuw logo" voor een volgende, of open de [UBN Logo Generator](https://projects.robbeverslype.be/ubn-logo-generator/) om zelf een vorm en kleuren te kiezen en het logo te downloaden.
 
-# In gebruik
-[9-mockup-dj.webp]
+[1-tien-logos.webp | 10 logovariaties uit hetzelfde systeem.]
 
-[10-mockup-zaal.webp]
+[2-mockup-scherm.webp]
 
-[11-mockup-spreekster.webp]
+[3-mockup-spreekpaal.webp]
 
-[12-mockup-podium.webp]
+[4-mockup-zaal.webp]
 
-# Logo generator
-Met de bouwstenen uit de guidelines kan je zelf nieuwe logo's maken: kies een vorm en twee kleuren, sleep UBN op zijn plaats en download het logo. De generator houdt zich aan dezelfde regels als de guidelines.
-
-Probeer de [UBN Logo Generator](https://projects.robbeverslype.be/ubn-logo-generator/).
-
-[13-logo-generator.webp | De UBN Logo Generator.]
+[5-mockup-dj.webp]

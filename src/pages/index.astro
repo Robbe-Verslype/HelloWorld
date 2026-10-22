@@ -233,7 +233,11 @@ const items = await Promise.all(
   if (ubnImg) {
     setTimeout(() => {
       try {
-        ubnImg.src = randomLogoCanvas(800, 600, '#000000').toDataURL('image/webp', 0.9);
+        const url = randomLogoCanvas(800, 600, '#000000').toDataURL('image/webp', 0.9);
+        ubnImg.removeAttribute('srcset');
+        ubnImg.src = url;
+        // zelfde logo bovenaan de case tonen als je erop klikt
+        try { sessionStorage.setItem('ubn-logo', url); } catch {}
       } catch {
         // lukt het niet, dan blijft de vaste cover staan
       }

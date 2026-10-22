@@ -14,6 +14,8 @@ const { title, year, client, role, tags, thumbnail, hero, color, blocks, section
 // Dropdowns blijven bij elkaar; hun foto's komen er samen onder
 // De foto bovenaan (hero) niet nog eens in de lijst
 const introBlocks = blocks.filter((b) => !(b.type === 'photo' && b.photo.name === hero.name));
+// Us By Night: bovenaan een live gegenereerd logo in plaats van een vaste foto
+const liveLogo = design.slug === 'us-by-night';
 const sectionPhotos = sections.flatMap((s) =>
   s.blocks.filter((b) => isMedia(b) && !(b.type === 'photo' && b.photo.name === hero.name)),
 );
@@ -35,13 +37,38 @@ const sectionPhotos = sections.flatMap((s) =>
           {tags.length > 0 && <div><dt>Tags</dt><dd>{tags.join(', ')}</dd></div>}
         </dl>
       </div>
-      <Image
-        src={hero.image}
-        alt={title}
-        width={Math.min(1200, hero.image.width)}
-        class="hero-img"
-        style={`view-transition-name: thumb-${design.slug}`}
-      />
+      {
+        liveLogo ? (
+          <div class="live-logo">
+            <Image
+              src={hero.image}
+              alt="Een gegenereerd UBN-logo"
+              width={Math.min(1200, hero.image.width)}
+              class="hero-img live-logo-img"
+              id="live-logo-img"
+              style={`view-transition-name: thumb-${design.slug}`}
+            />
+            <script is:inline>
+              try {
+                var s = sessionStorage.getItem('ubn-logo');
+                if (s) document.getElementById('live-logo-img').src = s;
+              } catch (e) {}
+            </script>
+            <div class="live-logo-bar">
+              <button type="button" id="live-logo-new">Genereer een nieuw logo</button>
+              <a href="/ubn-logo-generator/">Open de volledige generator →</a>
+            </div>
+          </div>
+        ) : (
+          <Image
+            src={hero.image}
+            alt={title}
+            width={Math.min(1200, hero.image.width)}
+            class="hero-img"
+            style={`view-transition-name: thumb-${design.slug}`}
+          />
+        )
+      }
     </header>
 
     <div class="case">
@@ -98,6 +125,27 @@ const sectionPhotos = sections.flatMap((s) =>
 </Base>
 
 <script>
+  import { randomLogoCanvas } from '../../scripts/ubn-logo';
+
+  // Us By Night: knop om op de pagina zelf een nieuw logo te genereren
+  const liveImg = document.getElementById('live-logo-img') as HTMLImageElement | null;
+  const liveBtn = document.getElementById('live-logo-new') as HTMLButtonElement | null;
+  if (liveImg && liveBtn) {
+    liveBtn.addEventListener('click', () => {
+      liveBtn.disabled = true;
+      setTimeout(() => {
+        try {
+          const url = randomLogoCanvas(1200, 900, '#000000').toDataURL('image/webp', 0.92);
+          liveImg.removeAttribute('srcset');
+          liveImg.src = url;
+          try { sessionStorage.setItem('ubn-logo', url); } catch {}
+        } finally {
+          liveBtn.disabled = false;
+        }
+      }, 20);
+    });
+  }
+
   // Altijd bovenaan de case beginnen, ook als de browser een oude scrollpositie onthoudt
   if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   const toTop = () => {
@@ -181,6 +229,46 @@ const sectionPhotos = sections.flatMap((s) =>
     object-fit: contain;
     border-radius: 4px;
     box-shadow: 0 20px 50px -20px rgb(0 0 0 / 0.45);
+  }
+
+  .live-logo {
+    display: grid;
+    gap: 0.9rem;
+    justify-items: center;
+  }
+  .live-logo-img {
+    background: #000;
+    aspect-ratio: 4 / 3;
+  }
+  .live-logo-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem 1rem;
+    align-items: center;
+    justify-content: center;
+  }
+  .live-logo-bar button {
+    padding: 0.6rem 1.1rem;
+    border: 0;
+    border-radius: 999px;
+    background: var(--bg);
+    color: var(--ink);
+    font: 500 0.95rem var(--font);
+    cursor: pointer;
+    box-shadow: 0 8px 24px -8px rgb(0 0 0 / 0.4);
+  }
+  .live-logo-bar button:disabled {
+    opacity: 0.6;
+    cursor: progress;
+  }
+  .live-logo-bar a {
+    color: var(--bg);
+    font: 500 0.95rem var(--font);
+  }
+  .live-logo-bar button:focus-visible,
+  .live-logo-bar a:focus-visible {
+    outline: 2px solid var(--bg);
+    outline-offset: 3px;
   }
 
   /* Twee kolommen: links de dropdowns, rechts de foto's. Op gsm onder elkaar. */
