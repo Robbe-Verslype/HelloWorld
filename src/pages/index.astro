@@ -223,6 +223,20 @@ const items = await Promise.all(
 <script>
   import { initGravityPile } from '../scripts/gravity';
 
+  import { randomLogoCanvas } from '../scripts/ubn-logo';
+
   const pile = document.getElementById('pile');
   if (pile) initGravityPile(pile, document.querySelector<HTMLButtonElement>('#bomb'));
+
+  // Us By Night: bij elk bezoek een ander gegenereerd logo als thumbnail (zelfde 4:3-formaat als cover.jpg)
+  const ubnImg = document.querySelector<HTMLImageElement>('.thumb[href="/designs/us-by-night/"] img');
+  if (ubnImg) {
+    setTimeout(() => {
+      try {
+        ubnImg.src = randomLogoCanvas(800, 600, '#000000').toDataURL('image/webp', 0.9);
+      } catch {
+        // lukt het niet, dan blijft de vaste cover staan
+      }
+    }, 0);
+  }
 </script>
