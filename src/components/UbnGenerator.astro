@@ -17,11 +17,6 @@
     <div class="ug-group">
       <span class="ug-label">1 · Vorm</span>
       <div class="ug-shapes" id="ug-shapes"></div>
-      <label class="ug-check"><input type="checkbox" id="ug-turn" /> Draaien en spiegelen</label>
-      <div class="ug-row" id="ug-turn-row" hidden>
-        <button class="ug-btn" type="button" id="ug-rot">Draai 90°</button>
-        <button class="ug-btn" type="button" id="ug-mir" aria-pressed="false">Spiegel</button>
-      </div>
     </div>
 
     <div class="ug-group">
@@ -420,13 +415,11 @@
     const PREVIEW_F = Math.round(96 * DPR);
     let state = null;
     let bg = 'black';
-    let allowTurn = false;
     let base = null;
 
     const colorName = (id) => COLORS.find((c) => c.id === id).name;
     const cfgCode = (c) =>
       `vorm ${c.shape + 1} · ${colorName(c.inner).toLowerCase()} binnen / ${colorName(c.outer).toLowerCase()} buiten` +
-      (c.rot || c.mirror ? ` · ${c.rot * 90}°${c.mirror ? ' gespiegeld' : ''}` : '') +
       ` · grain #${c.seed}`;
     const fileName = (c) => `UBN_vorm${c.shape + 1}_${colorName(c.inner).toLowerCase()}-${colorName(c.outer).toLowerCase()}.png`;
 
@@ -475,8 +468,6 @@
           b.title = b.disabled ? 'Binnen- en buitenkleur mogen niet dezelfde zijn' : '';
         });
       }
-      $('ug-turn-row').hidden = !allowTurn;
-      $('ug-mir').setAttribute('aria-pressed', String(state.mirror));
       [...$('ug-bg').children].forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.bg === bg)));
       $('ug-stage-box').dataset.bg = bg;
       $('ug-code').textContent = cfgCode(state);
@@ -513,10 +504,6 @@
       let o = Math.floor(Math.random() * 3);
       if (o >= i) o++;
       const c = { shape: Math.floor(Math.random() * 6), inner: COLORS[i].id, outer: COLORS[o].id, rot: 0, mirror: false, seed: 1 + Math.floor(Math.random() * 9999), tx: 0, ty: 0 };
-      if (allowTurn) {
-        c.rot = Math.floor(Math.random() * 4);
-        c.mirror = Math.random() < 0.5;
-      }
       [c.tx, c.ty] = randomPlacement(c);
       return c;
     }
@@ -579,25 +566,6 @@
     });
     $('ug-seed').addEventListener('click', () => {
       state.seed = 1 + Math.floor(Math.random() * 9999);
-      refresh();
-    });
-    $('ug-turn').addEventListener('change', (e) => {
-      allowTurn = e.target.checked;
-      if (!allowTurn && (state.rot || state.mirror)) {
-        state.rot = 0;
-        state.mirror = false;
-        reposition();
-        refresh();
-      } else syncControls();
-    });
-    $('ug-rot').addEventListener('click', () => {
-      state.rot = (state.rot + 1) % 4;
-      reposition();
-      refresh();
-    });
-    $('ug-mir').addEventListener('click', () => {
-      state.mirror = !state.mirror;
-      reposition();
       refresh();
     });
     [...$('ug-bg').children].forEach((b) =>
