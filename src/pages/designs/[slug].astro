@@ -68,8 +68,6 @@ const sectionPhotos = sections.flatMap((s) =>
       }
     </header>
 
-    {liveLogo && <UbnGenerator />}
-
     <div class="case">
       {/* Links: tekst en dropdowns */}
       <div class="case-text">
@@ -107,6 +105,7 @@ const sectionPhotos = sections.flatMap((s) =>
       {
         (sectionPhotos.length > 0 || gallery.length > 0 || extraClips.length > 0) && (
           <div class="case-photos">
+            {liveLogo && <UbnGenerator />}
             {liveLogo && (
               <div class="live-sheet">
                 <img id="live-sheet-img" class="photo" alt="10 willekeurig gegenereerde UBN-logo's" width="2000" height="660" />

@@ -3,79 +3,65 @@
 // Gebruikt dezelfde render-engine als de thumbnail (src/scripts/ubn-logo.ts).
 ---
 
-<section class="ug" aria-labelledby="ug-title">
-  <div class="ug-inner">
-    <header class="ug-head">
-      <h2 id="ug-title">Maak je eigen UBN-logo</h2>
-      <p>Kies een vorm en twee kleuren, sleep UBN op zijn plaats en download je logo. De generator houdt zich aan dezelfde regels als de brand guidelines.</p>
-    </header>
+<section class="ug" aria-label="UBN logo generator">
+  <div class="ug-stage-col">
+    <div class="ug-stage" id="ug-stage-box" data-bg="black">
+      <canvas id="ug-stage" aria-label="Voorbeeld van het logo. Sleep UBN of gebruik de pijltjestoetsen." tabindex="0"></canvas>
+      <span class="ug-busy" id="ug-busy" hidden>renderen…</span>
+    </div>
+  </div>
 
-    <div class="ug-main">
-      <div class="ug-controls" aria-label="Instellingen">
-        <div class="ug-group">
-          <button class="ug-btn ug-primary" type="button" id="ug-random">Genereer willekeurig logo</button>
-        </div>
+  <div class="ug-controls" aria-label="Instellingen">
+    <button class="ug-btn ug-primary ug-wide" type="button" id="ug-random">Genereer willekeurig logo</button>
 
-        <div class="ug-group">
-          <span class="ug-label">1 · Vorm</span>
-          <div class="ug-shapes" id="ug-shapes"></div>
-          <label class="ug-check"><input type="checkbox" id="ug-turn" /> Vorm draaien en spiegelen</label>
-          <div class="ug-row" id="ug-turn-row" hidden>
-            <button class="ug-btn" type="button" id="ug-rot">Draai 90°</button>
-            <button class="ug-btn" type="button" id="ug-mir" aria-pressed="false">Spiegel</button>
-          </div>
-        </div>
+    <div class="ug-group">
+      <span class="ug-label">1 · Vorm</span>
+      <div class="ug-shapes" id="ug-shapes"></div>
+      <label class="ug-check"><input type="checkbox" id="ug-turn" /> Draaien en spiegelen</label>
+      <div class="ug-row" id="ug-turn-row" hidden>
+        <button class="ug-btn" type="button" id="ug-rot">Draai 90°</button>
+        <button class="ug-btn" type="button" id="ug-mir" aria-pressed="false">Spiegel</button>
+      </div>
+    </div>
 
-        <div class="ug-group">
-          <span class="ug-label">2 · Kleuren</span>
-          <div class="ug-color-row"><span>Binnen</span><div class="ug-swatches" id="ug-inner"></div></div>
-          <div class="ug-color-row"><span>Buiten</span><div class="ug-swatches" id="ug-outer"></div></div>
-          <button class="ug-btn" type="button" id="ug-swap">Wissel binnen en buiten</button>
-        </div>
+    <div class="ug-group">
+      <span class="ug-label">2 · Kleuren</span>
+      <div class="ug-color-row"><span>Binnen</span><div class="ug-swatches" id="ug-inner"></div></div>
+      <div class="ug-color-row"><span>Buiten</span><div class="ug-swatches" id="ug-outer"></div></div>
+      <button class="ug-btn" type="button" id="ug-swap">Wissel binnen en buiten</button>
+    </div>
 
-        <div class="ug-group">
-          <span class="ug-label">3 · Woordmerk UBN</span>
-          <p class="ug-note">Sleep UBN in het logo. Een positie buiten de regels springt terug naar de dichtstbijzijnde geldige plek.</p>
-          <button class="ug-btn" type="button" id="ug-place">Nieuwe positie</button>
-        </div>
+    <div class="ug-group">
+      <span class="ug-label">3 · Woordmerk en grain</span>
+      <p class="ug-note">Sleep UBN in het logo. Buiten de regels springt het terug.</p>
+      <button class="ug-btn" type="button" id="ug-place">Nieuwe positie</button>
+      <button class="ug-btn" type="button" id="ug-seed">Nieuwe grain</button>
+    </div>
 
-        <div class="ug-group">
-          <span class="ug-label">Grain</span>
-          <button class="ug-btn" type="button" id="ug-seed">Nieuwe grain</button>
-        </div>
-
-        <div class="ug-group">
-          <span class="ug-label">Achtergrond</span>
+    <div class="ug-group ug-wide ug-export">
+      <span class="ug-label">Downloaden als PNG</span>
+      <div class="ug-export-row">
+        <div class="ug-field">
+          <span class="ug-note">Achtergrond</span>
           <div class="ug-seg" id="ug-bg">
             <button type="button" data-bg="black" aria-pressed="true">Zwart</button>
             <button type="button" data-bg="white" aria-pressed="false">Wit</button>
             <button type="button" data-bg="none" aria-pressed="false">Transparant</button>
           </div>
         </div>
-
-        <div class="ug-group">
-          <span class="ug-label">Downloaden als PNG</span>
-          <div class="ug-row">
-            <label for="ug-size" class="ug-note">Breedte</label>
-            <select id="ug-size" class="ug-btn ug-select">
-              <option value="1200">1200 px</option>
-              <option value="2400" selected>2400 px</option>
-              <option value="3600">3600 px</option>
-            </select>
-          </div>
-          <button class="ug-btn ug-primary" type="button" id="ug-download">Download logo</button>
+        <div class="ug-field">
+          <label for="ug-size" class="ug-note">Breedte</label>
+          <select id="ug-size" class="ug-btn ug-select">
+            <option value="1200">1200 px</option>
+            <option value="2400" selected>2400 px</option>
+            <option value="3600">3600 px</option>
+          </select>
         </div>
-      </div>
-
-      <div class="ug-stage-col">
-        <div class="ug-stage" id="ug-stage-box" data-bg="black">
-          <canvas id="ug-stage" aria-label="Voorbeeld van het logo" tabindex="0"></canvas>
-          <span class="ug-busy" id="ug-busy" hidden>renderen…</span>
-        </div>
-        <div class="ug-rules" id="ug-rules"></div>
-        <span class="ug-code" id="ug-code"></span>
+        <button class="ug-btn ug-primary" type="button" id="ug-download">Download logo</button>
       </div>
     </div>
+
+    <span class="ug-code ug-wide" id="ug-code"></span>
   </div>
   <div class="ug-toast" id="ug-toast" role="status" hidden></div>
 </section>
@@ -93,13 +79,11 @@
     --ug-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
     background: var(--ug-bg);
     color: var(--ug-fg);
-    padding: 3rem 1rem;
     font-family: var(--font);
-  }
-  @media (min-width: 800px) {
-    .ug {
-      padding: 4rem 3rem;
-    }
+    border-radius: 4px;
+    padding: 12px;
+    display: grid;
+    gap: 12px;
   }
   .ug *,
   .ug *::before,
@@ -109,54 +93,25 @@
   .ug [hidden] {
     display: none !important;
   }
-  .ug-inner {
-    max-width: 1400px;
-    margin: 0 auto;
-    display: grid;
-    gap: 1.5rem;
-  }
-  .ug-head h2 {
-    margin: 0 0 0.4rem;
-    font-size: clamp(1.75rem, 4vw, 2.75rem);
-    line-height: 1;
-    letter-spacing: -0.03em;
-  }
-  .ug-head p {
-    margin: 0;
-    color: var(--ug-muted);
-    max-width: 60ch;
-  }
-  .ug-main {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 20px;
-    align-items: start;
-  }
-  @media (min-width: 900px) {
-    .ug-main {
-      grid-template-columns: 320px minmax(0, 1fr);
-    }
-  }
+  /* Knoppen in kolommen onder het beeld */
   .ug-controls {
     display: grid;
-    gap: 16px;
-    background: var(--ug-panel);
-    border: 1px solid var(--ug-line);
-    border-radius: 10px;
-    padding: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 10px;
+    align-items: start;
   }
-  @media (max-width: 899px) {
-    .ug-stage-col {
-      order: -1;
-    }
+  .ug-wide {
+    grid-column: 1 / -1;
   }
   .ug-group {
     display: grid;
     gap: 8px;
-  }
-  .ug-group + .ug-group {
-    border-top: 1px solid var(--ug-line);
-    padding-top: 16px;
+    align-content: start;
+    background: var(--ug-panel);
+    border: 1px solid var(--ug-line);
+    border-radius: 8px;
+    padding: 12px;
+    min-width: 0;
   }
   .ug-label {
     font-family: var(--ug-mono);
@@ -168,7 +123,8 @@
   .ug-note {
     margin: 0;
     color: var(--ug-muted);
-    font-size: 0.85rem;
+    font-size: 0.82rem;
+    line-height: 1.35;
   }
   .ug-row {
     display: flex;
@@ -254,6 +210,8 @@
     align-items: center;
     cursor: pointer;
     color: var(--ug-muted);
+    font-size: 0.85rem;
+    line-height: 1.3;
   }
   .ug-check input {
     accent-color: var(--ug-fg);
@@ -262,17 +220,22 @@
   }
   .ug-color-row {
     display: grid;
-    grid-template-columns: 56px 1fr;
+    gap: 6px;
+    font-size: 0.82rem;
+    color: var(--ug-muted);
     align-items: center;
     gap: 8px;
   }
   .ug-swatches {
     display: flex;
+    flex-wrap: wrap;
     gap: 8px;
+    min-width: 0;
   }
   .ug :global(.ug-sw) {
-    width: 38px;
-    height: 38px;
+    width: 28px;
+    height: 28px;
+    flex: none;
     border-radius: 50%;
     border: 2px solid transparent;
     cursor: pointer;
@@ -302,14 +265,33 @@
     border-radius: 8px;
     overflow: hidden;
     width: max-content;
+    max-width: 100%;
   }
   .ug-seg button {
-    font: 500 0.9rem var(--font);
+    font: 500 0.85rem var(--font);
     background: var(--ug-raise);
     color: var(--ug-muted);
     border: 0;
-    padding: 7px 11px;
+    padding: 8px 11px;
     cursor: pointer;
+  }
+  .ug-export-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 16px;
+    align-items: flex-end;
+  }
+  .ug-field {
+    display: grid;
+    gap: 5px;
+  }
+  .ug-export #ug-download {
+    margin-left: auto;
+  }
+  @media (max-width: 520px) {
+    .ug-export #ug-download {
+      width: 100%;
+    }
   }
   .ug-seg button + button {
     border-left: 1px solid var(--ug-line);
@@ -326,10 +308,9 @@
   }
   .ug-stage {
     position: relative;
-    border: 1px solid var(--ug-line);
-    border-radius: 10px;
+    border-radius: 4px;
     overflow: hidden;
-    min-height: 300px;
+    aspect-ratio: 4 / 3;
     display: grid;
     place-items: center;
     padding: 18px;
@@ -349,7 +330,7 @@
   }
   #ug-stage {
     max-width: 100%;
-    max-height: 64vh;
+    max-height: 100%;
     height: auto;
     touch-action: none;
     cursor: grab;
@@ -368,8 +349,8 @@
   }
   .ug-rules {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 8px;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 6px;
   }
   .ug :global(.ug-rule) {
     display: flex;
@@ -501,24 +482,9 @@
       $('ug-code').textContent = cfgCode(state);
     }
 
-    function renderRules() {
-      const st = analysis(state).check(state.tx, state.ty);
-      const rules = [
-        { ok: true, t: '1 van de 6 vormen', s: 'Vorm ' + (state.shape + 1) },
-        { ok: state.inner !== state.outer, t: '2 verschillende kleuren', s: `${colorName(state.inner)} binnen, ${colorName(state.outer)} buiten` },
-        { ok: st.off, t: 'UBN off-center', s: st.off ? 'Niet in het midden van de vorm' : 'Te dicht bij het midden' },
-        { ok: st.ring, t: 'Binnen de binnenste ring', s: st.ring ? 'UBN raakt de buitenring niet' : 'UBN raakt de buitenring' },
-        { ok: true, t: 'Vaste tekstgrootte, wit', s: 'Stretch Pro, altijd dezelfde grootte' },
-      ];
-      $('ug-rules').innerHTML = rules
-        .map((r) => `<div class="ug-rule" data-ok="${r.ok}"><span class="dot" aria-hidden="true">${r.ok ? '✓' : '!'}</span><div><b>${r.t}</b><small>${r.s}</small></div></div>`)
-        .join('');
-    }
-
     function draw() {
       if (!base) return;
       compose(base, state, 'none', stage);
-      renderRules();
     }
 
     let token = 0;
@@ -531,6 +497,7 @@
           if (tok !== token) return;
           base = renderBase(state, PREVIEW_F);
           stage.style.width = Math.round(base.W / DPR) + 'px';
+          stage.style.height = 'auto';
           draw();
           $('ug-busy').hidden = true;
         }, 0),

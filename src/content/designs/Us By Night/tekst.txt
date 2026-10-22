@@ -49,8 +49,11 @@ Het logo werkt met drie regels: kies 1 van de 6 vormen, kies een combinatie van 
 
 Voor publicaties in zwart-wit of wanneer het logo minder mag opvallen, testte ik ook zwart-witvarianten.
 
+# Disclaimer
+Dit is een schoolproject en geen opdracht van of voor Us By Night. De foto's in de mockups zijn foto's van Us By Night zelf, waarop ik mijn logo's geplaatst heb.
+
 # Zelf een logo maken
-Het logo bovenaan en de 10 logo's bij de beelden worden bij elk bezoek opnieuw gegenereerd volgens dezelfde regels. Elke reeks gebruikt alle 6 vormen en 10 verschillende kleurcombinaties. In de generator op deze pagina kies je zelf een vorm en kleuren, sleep je UBN op zijn plaats en download je het logo op een zwarte, witte of transparante achtergrond.
+Het logo bovenaan en de 10 logo's bij de beelden worden bij elk bezoek opnieuw gegenereerd volgens dezelfde regels. Elke reeks gebruikt alle 6 vormen en 10 verschillende kleurcombinaties. In de generator bovenaan de beelden kies je zelf een vorm en kleuren, sleep je UBN op zijn plaats en download je het logo op een zwarte, witte of transparante achtergrond.
 
 [2-mockup-scherm.webp]
 
