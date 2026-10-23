@@ -324,9 +324,6 @@
     background-position: 0 0, 11px 11px;
   }
   #ug-stage {
-    max-width: 100%;
-    max-height: 100%;
-    height: auto;
     touch-action: none;
     cursor: grab;
     display: block;
@@ -487,13 +484,27 @@
         setTimeout(() => {
           if (tok !== token) return;
           base = renderBase(state, PREVIEW_F);
-          stage.style.width = Math.round(base.W / DPR) + 'px';
-          stage.style.height = 'auto';
+          fitStage();
           draw();
           $('ug-busy').hidden = true;
         }, 0),
       );
     }
+
+    // Canvas altijd volledig binnen het zwarte vak schalen (ook bij hoge vormen op gsm)
+    function fitStage() {
+      if (!base) return;
+      const box = $('ug-stage-box');
+      const cs = getComputedStyle(box);
+      const availW = box.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+      const availH = box.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+      const natW = base.W / DPR;
+      const natH = base.H / DPR;
+      const k = Math.min(1, availW / natW, availH / natH);
+      stage.style.width = Math.floor(natW * k) + 'px';
+      stage.style.height = Math.floor(natH * k) + 'px';
+    }
+    window.addEventListener('resize', fitStage);
 
     function reposition() {
       [state.tx, state.ty] = randomPlacement(state);
