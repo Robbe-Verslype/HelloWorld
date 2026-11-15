@@ -31,6 +31,7 @@ export type Block =
   | { type: 'heading'; text: string }
   | { type: 'paragraph'; lines: string[] }
   | { type: 'photo'; photo: Photo; caption?: string }
+  | { type: 'row'; photos: Photo[] }
   | { type: 'video'; embed: string; vertical: boolean; kind: 'reel' | 'post' | 'video' }
   | { type: 'clip'; src: string; name: string };
 
@@ -51,8 +52,8 @@ function videoEmbed(url: string): string | undefined {
 }
 
 /** Foto's en video's samen: alles wat in de beeldkolom komt. */
-export const isMedia = (b: Block): b is Extract<Block, { type: 'photo' | 'video' | 'clip' }> =>
-  b.type === 'photo' || b.type === 'video' || b.type === 'clip';
+export const isMedia = (b: Block): b is Extract<Block, { type: 'photo' | 'row' | 'video' | 'clip' }> =>
+  b.type === 'photo' || b.type === 'row' || b.type === 'video' || b.type === 'clip';
 
 export interface Section {
   title: string;
@@ -178,6 +179,15 @@ function buildDesign(folder: string): Design | null {
       target().push({ type: 'heading', text: first.replace(/^#+\s*/, '') });
       text = rest.join('\n').trim();
       if (!text) continue;
+    }
+    // Meerdere [foto]-regels zonder witregel ertussen = foto's naast elkaar
+    const rowLines = text.split('\n').map((l) => l.trim());
+    const rowPhotos = rowLines.map((l) => byName.get(l.match(/^\[(.+)\]$/)?.[1].trim().toLowerCase() ?? ''));
+    if (rowLines.length > 1 && rowPhotos.every(Boolean)) {
+      const photos = rowPhotos as Photo[];
+      target().push({ type: 'row', photos });
+      photos.forEach((p) => used.add(p));
+      continue;
     }
     const photoRef = text.match(/^\[(.+)\]$/);
     // [foto.jpg | Bijschrift] zet een korte uitleg onder de foto

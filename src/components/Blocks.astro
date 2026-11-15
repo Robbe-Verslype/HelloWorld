@@ -55,6 +55,12 @@ function linkParts(line: string) {
       ) : (
         <Image src={block.photo.image} alt="" width={Math.min(1800, block.photo.image.width)} class="photo" />
       )
+    ) : block.type === 'row' ? (
+      <div class="photo-row" style={`--cols: ${Math.min(block.photos.length, 4)}`}>
+        {block.photos.map((photo) => (
+          <Image src={photo.image} alt="" width={Math.min(1000, photo.image.width)} class="photo" />
+        ))}
+      </div>
     ) : block.type === 'video' ? (
       <div class:list={['video', { vertical: block.vertical, insta: block.kind !== 'video', post: block.kind === 'post' }]}>
         <iframe
@@ -87,6 +93,18 @@ function linkParts(line: string) {
 }
 
 <style>
+  /* Foto's naast elkaar (bv. een reeks posters); op gsm per twee */
+  .photo-row {
+    display: grid;
+    grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+    gap: 0.75rem;
+    align-items: start;
+  }
+  @media (max-width: 600px) {
+    .photo-row {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
   p a {
     color: inherit;
     text-decoration: underline;
