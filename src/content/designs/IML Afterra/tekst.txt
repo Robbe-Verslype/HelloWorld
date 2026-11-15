@@ -1,0 +1,40 @@
+Afterra
+Jaar: 2026
+Klant: Schoolopdracht (internationale projectweek)
+Rol: Visueel systeem voor de campagne
+Tags: visual system, campagne, posters, motion
+Kleur: #111111
+
+--- De klant + opdracht
+Tijdens de internationale projectweek (IML) op AP Hogeschool kregen we de opdracht om een ecosysteem voor communicatie te bedenken voor na een blackout. Ons team bedacht Afterra: "the new ecosystem for communication after the blackout". Binnen het team werkte ik het visuele systeem voor de campagne uit.
+
+# De hubs
+Afterra draait rond hubs: plekken verspreid over de stad waar informatie samenkomt en verder verspreid wordt. Elke stad heeft één centrale city hub, waar je elke vrijdag om 20:00 leert hoe het systeem werkt.
+
+--- Manier van aanpak
+# Het idee
+Communicatie is informatie die zich verspreidt. Het visuele systeem vertrekt daarom vanuit één blok dat zich in twee splitst telkens het een hub tegenkomt.
+
+# Zo werkt het systeem
+1. Elke hub komt op de poster op zijn echte locatie: noord bovenaan, zuid onderaan, west naar oost van links naar rechts. Op elke hub komt een horizontale lijn.
+2. De stad wordt in twee gedeeld. De noordelijke hubs werken van boven naar beneden, de zuidelijke van onder naar boven.
+3. Bovenaan start één volledig blok. Elke hub begint een nieuwe rij, en daarin splitst elk blok in twee: precies op de hub, of in het midden als de hub niet in dat blok ligt.
+4. Onderaan gebeurt hetzelfde naar boven, in de andere kleur. In het midden grijpen de laatste rijen van beide helften in elkaar.
+
+Elke snede in het patroon komt zo van een hub. Andere hubs geven een ander patroon: elke stad krijgt een eigen poster, die eigenlijk een kaart van haar netwerk is.
+
+# De tool
+Om het systeem op elke stad toe te passen, liet ik een tool bouwen die het patroon berekent vanuit de hubs van een stad. Ik testte die op de Vlaamse provinciehoofdsteden.
+
+[0-motion-systeem.mp4]
+
+--- Het resultaat
+Posters voor Antwerpen, Gent, Hasselt en Leuven. Ze dragen dezelfde boodschap en hetzelfde systeem, maar elk met het patroon van het eigen netwerk. Onderaan staat waar je het volledige systeem leert: elke vrijdag om 20:00 in de city hub van die stad.
+
+[1-poster-antwerp.jpg]
+
+[2-poster-ghent.jpg]
+
+[3-poster-hasselt.jpg]
+
+[4-poster-leuven.jpg]
