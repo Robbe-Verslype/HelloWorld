@@ -28,6 +28,8 @@ Om niet voor elke stad alle vlakken zelf in Illustrator te moeten tekenen, maakt
 
 [0-motion-systeem.mp4]
 
+[0a-tool.png | De tool die ik met Claude maakte: kies een stad en instellingen zoals het kleinste blok, en de poster wordt meteen getekend.]
+
 [0b-hubs-antwerpen.webp | De hubs van Antwerpen achter het patroon: elke horizontale lijn en elke snede komt van een hub.]
 
 --- Het resultaat
