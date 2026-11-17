@@ -28,7 +28,7 @@ Om niet voor elke stad alle vlakken zelf in Illustrator te moeten tekenen, maakt
 
 [0-motion-systeem.mp4]
 
-[0a-tool.png | Mijn prompt aan Claude: “Werk een tool uit voor een visueel systeem voor een poster. Dit is de insteek: de poster is telkens anders per stad. Er worden eerst op de punten (de verschillende hubs) horizontale guides gezet. Er wordt telkens vanuit de boven- en onderkant gestart met een volledig blok, dat zich telkens in twee splitst op het punt van de hub. De volgende horizontale sectie heeft dan twee vierkanten. Als er in een van de vierkanten geen punt is, splitsen ze gewoon recht in de helft. De kleuren moeten we nog uitzoeken. Vanonder gebeurt net hetzelfde, maar dan naar boven. In het midden heb je dus de twee eindsecties van beide splitsingen. Werk de tool uit, stel me vragen waar nodig en maak testen voor de Vlaamse provinciehoofdsteden.”]
+[0a-tool.png | Mijn prompt aan Claude: “Werk een tool uit voor een visueel systeem voor een poster. Dit is de insteek: de poster is telkens anders per stad. Er worden eerst op de punten (de verschillende hubs) horizontale guides gezet. Er wordt telkens vanuit de boven- en onderkant gestart met een volledig blok, dat zich telkens in twee splitst op het punt van de hub. De volgende horizontale sectie heeft dan twee vierkanten. Als er in een van de vierkanten geen punt is, splitsen ze gewoon recht in de helft. Vanonder gebeurt net hetzelfde, maar dan naar boven. In het midden heb je dus de twee eindsecties van beide splitsingen. Werk de tool uit, stel me vragen waar nodig en maak testen voor de Vlaamse provinciehoofdsteden.”]
 
 [0b-hubs-antwerpen.webp | De hubs van Antwerpen achter het patroon: elke horizontale lijn en elke snede komt van een hub.]
 
