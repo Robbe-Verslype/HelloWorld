@@ -1,5 +1,6 @@
 ---
-// Eigen cursor: een ronde ring die de muis volgt (rond, net als het heatmap-effect).
+// Eigen cursor: een ronde stip die de muis volgt (rond, net als het heatmap-effect) en elastisch
+// uitrekt als je snel beweegt.
 // Boven een thumbnail of iets klikbaars wordt hij als een magneet naar dat element getrokken
 // en legt hij zich er als vier hoekjes rond, zoals een snijkader.
 // Alleen op toestellen met een muis; op gsm en tablet verandert er niets.
@@ -14,23 +15,23 @@
     top: 0;
     z-index: 2147483000;
     pointer-events: none;
-    width: 30px;
-    height: 30px;
-    border: 1.5px solid #fff;
+    width: 14px;
+    height: 14px;
+    background: #fff;
     border-radius: 50%;
     /* Keert de kleuren eronder om: zwart op de lichte achtergrond, licht op donkere foto's */
     mix-blend-mode: difference;
     opacity: 0;
     transition:
       opacity 0.2s,
-      border-color 0.2s,
+      background-color 0.2s,
       border-radius 0.2s;
   }
   .cursor.on {
     opacity: 1;
   }
   .cursor.snap {
-    border-color: transparent;
+    background-color: transparent;
     border-radius: 0;
   }
   .cursor i {
@@ -93,14 +94,19 @@
 
     /** Waar de cursor zich rond legt. */
     const TARGETS = '.thumb, a, button, summary, [role="button"], label, select';
-    const RING = 30;
+    const DOT = 14;
     const PAD = 8;
 
     let mx = -100;
     let my = -100;
     let target: HTMLElement | null = null;
     // Huidige (vloeiende) positie, grootte en hoek
-    const cur = { x: -100, y: -100, w: RING, h: RING, a: 0 };
+    const cur = { x: -100, y: -100, w: DOT, h: DOT, a: 0, s: 1 };
+    // Snelheid van de muis, voor het uitrekken
+    let lastX = -100;
+    let lastY = -100;
+    let vx = 0;
+    let vy = 0;
 
     addEventListener(
       'pointermove',
@@ -140,9 +146,17 @@
       }
       let x = mx;
       let y = my;
-      let w = RING;
-      let h = RING;
-      let a = 0;
+      let w = DOT;
+      let h = DOT;
+      // Snelheid en richting van de muis
+      vx += (mx - lastX - vx) * 0.3;
+      vy += (my - lastY - vy) * 0.3;
+      lastX = mx;
+      lastY = my;
+      const speed = Math.hypot(vx, vy);
+      // De stip rekt uit in de bewegingsrichting; stilstaand blijft hij rond
+      let a = speed > 0.6 ? Math.atan2(vy, vx) : cur.a;
+      let stretch = reduce ? 1 : 1 + Math.min(speed / 18, 1.4);
       const snapping = !!target && target.isConnected;
       if (snapping) {
         const r = target!.getBoundingClientRect();
@@ -152,6 +166,7 @@
         w = target!.offsetWidth + PAD * 2;
         h = target!.offsetHeight + PAD * 2;
         a = angleOf(target!);
+        stretch = 1;
       }
       cursor!.classList.toggle('snap', snapping);
 
@@ -163,11 +178,12 @@
       // Kortste weg naar de nieuwe hoek
       let da = a - cur.a;
       da = Math.atan2(Math.sin(da), Math.cos(da));
-      cur.a += da * k;
+      cur.a += da * (snapping ? k : 0.5);
+      cur.s += (stretch - cur.s) * 0.35;
 
       cursor!.style.width = `${cur.w}px`;
       cursor!.style.height = `${cur.h}px`;
-      cursor!.style.transform = `translate(${cur.x - cur.w / 2}px, ${cur.y - cur.h / 2}px) rotate(${cur.a}rad)`;
+      cursor!.style.transform = `translate(${cur.x - cur.w / 2}px, ${cur.y - cur.h / 2}px) rotate(${cur.a}rad) scale(${cur.s}, ${1 / Math.sqrt(cur.s)})`;
       requestAnimationFrame(frame);
     }
     requestAnimationFrame(frame);
