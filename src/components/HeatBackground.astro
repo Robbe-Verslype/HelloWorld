@@ -6,6 +6,7 @@
 ---
 
 <canvas class="heat" aria-hidden="true"></canvas>
+<div class="heat-glass" aria-hidden="true"></div>
 
 <style>
   .heat {
@@ -15,6 +16,15 @@
     height: 100%;
     z-index: -1;
     pointer-events: none;
+    /* Melkglas: het spoor zit als het ware achter een melkwitte ruit */
+    filter: blur(26px);
+  }
+  .heat-glass {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: rgb(255 255 255 / 0.28);
   }
 </style>
 
@@ -22,7 +32,7 @@
   // Zelfde vorm als de demo van heatmap.js, maar in zwart en grijs
   const RADIUS = 50;
   const BLUR = 0.9;
-  const MAX_OPACITY = 0.3;
+  const MAX_OPACITY = 0.6;
   /** Een plek blijft zo lang volledig staan na de laatste keer dat je er kwam (ms)... */
   const HOLD = 1500;
   /** ...en vervaagt daarna in zoveel ms. */
