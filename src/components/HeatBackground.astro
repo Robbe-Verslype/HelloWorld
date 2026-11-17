@@ -29,12 +29,12 @@
   const FADE = 3000;
   /** Rekenresolutie: half zo groot rekenen houdt het vlot, het beeld is toch zacht. */
   const SCALE = 0.5;
-  /** Kleurverloop van koud naar warm: lichtgrijs → zwart. */
+  /** Twee grijzen: lichtgrijs voor het spoor, een donkerder grijs waar je blijft hangen. */
   const GRADIENT: [number, string][] = [
-    [0.25, 'rgb(210,210,210)'],
-    [0.55, 'rgb(160,160,160)'],
-    [0.85, 'rgb(100,100,100)'],
-    [1, 'rgb(50,50,50)'],
+    [0.25, 'rgb(190,190,190)'],
+    [0.55, 'rgb(185,185,185)'],
+    [0.85, 'rgb(90,90,90)'],
+    [1, 'rgb(70,70,70)'],
   ];
 
   const canvas = document.querySelector<HTMLCanvasElement>('canvas.heat');
