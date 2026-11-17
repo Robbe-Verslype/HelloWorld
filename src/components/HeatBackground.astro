@@ -106,6 +106,35 @@
         d[i] = a < maxA ? a : maxA;
       }
       ctx.putImageData(img, 0, 0);
+      maskText();
+    }
+
+    // Geen warmte achter tekst (elementen met data-no-heat, bv. de tekstkolom op de projectpagina's):
+    // die stukken worden met een zachte rand weggeveegd
+    const noHeat = Array.from(document.querySelectorAll<HTMLElement>('[data-no-heat]'));
+    const FEATHER = 24;
+    function maskText() {
+      if (!noHeat.length) return;
+      ctx.save();
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.fillStyle = '#000';
+      ctx.shadowColor = '#000';
+      ctx.shadowBlur = FEATHER * SCALE;
+      // De rechthoek zelf ligt buiten beeld; enkel zijn vervaagde schaduw valt op de tekst
+      const off = canvas!.width + 1000;
+      ctx.shadowOffsetX = off;
+      for (const el of noHeat) {
+        const r = el.getBoundingClientRect();
+        if (r.bottom < 0 || r.top > innerHeight || !r.width) continue;
+        const pad = 12;
+        ctx.fillRect(
+          (r.left - pad) * SCALE - off,
+          (r.top - pad) * SCALE,
+          (r.width + pad * 2) * SCALE,
+          (r.height + pad * 2) * SCALE,
+        );
+      }
+      ctx.restore();
     }
 
     function frame(now: number) {
