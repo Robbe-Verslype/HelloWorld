@@ -1,6 +1,5 @@
 ---
 import Contact from '../components/Contact.astro';
-import HeatBackground from '../components/HeatBackground.astro';
 
 interface Props {
   title: string;
@@ -32,7 +31,6 @@ const ADOBE_FONTS_ID = 'ira3tvv';
     />
   </head>
   <body>
-    <HeatBackground />
     <slot />
     <Contact />
   </body>
@@ -66,11 +64,6 @@ const ADOBE_FONTS_ID = 'ira3tvv';
     color: var(--ink);
     font-family: var(--font);
     -webkit-font-smoothing: antialiased;
-  }
-
-  /* De body is doorzichtig, zodat de heatmap (achter alles) zichtbaar is op de achtergrond van html */
-  body {
-    background: transparent;
   }
 
   h1 {
