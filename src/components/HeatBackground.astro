@@ -23,9 +23,9 @@
   /** Straal van één warmtepunt in schermpixels. */
   const RADIUS = 70;
   /** Hoeveel warmte één beweging toevoegt (0–1). */
-  const STRENGTH = 0.22;
-  /** Hoe snel het afkoelt per frame (0–1). */
-  const COOL = 0.008;
+  const STRENGTH = 0.1;
+  /** Afkoelen: een licht spoor blijft ~6 seconden staan, een plek waar je lang bleef hangen ~20 seconden. */
+  const COOL_PER_SECOND = 21;
   /** Maximale dekking van de kleuren, zodat de achtergrond rustig blijft. */
   const MAX_OPACITY = 0.7;
   /** Kleurverloop van koud naar warm, zoals de standaard van heatmap.js. */
@@ -73,7 +73,12 @@
       if (canvas!.width === w && canvas!.height === h) return;
       canvas!.width = heat.width = w;
       canvas!.height = heat.height = h;
+      warmth = new Float32Array(w * h);
+      outImg = null;
     }
+    // Warmte per pixel (0–255), met kommagetallen zodat het heel geleidelijk kan afkoelen
+    let warmth = new Float32Array(0);
+    let outImg: ImageData | null = null;
     resize();
     addEventListener('resize', resize);
 
@@ -112,24 +117,26 @@
       if (e.pointerType !== 'mouse') last = null;
     });
 
-    let outImg: ImageData | null = null;
+    let lastFrame = 0;
 
     function frame(now: number) {
+      const dt = lastFrame ? Math.min(0.1, (now - lastFrame) / 1000) : 1 / 60;
+      lastFrame = now;
       const w = heat.width;
       const h = heat.height;
-      const src = hctx.getImageData(0, 0, w, h);
-      const d = src.data;
-      if (!outImg || outImg.width !== w || outImg.height !== h) outImg = out.createImageData(w, h);
+      // Nieuwe warmte van deze frame ophalen en het tekencanvas weer leegmaken
+      const fresh = hctx.getImageData(0, 0, w, h).data;
+      hctx.clearRect(0, 0, w, h);
+      if (!outImg) outImg = out.createImageData(w, h);
       const o = outImg.data;
+      const cool = COOL_PER_SECOND * dt;
       let hot = false;
-      for (let i = 3; i < d.length; i += 4) {
-        // Afkoelen: een vast stapje plus een procentje, zodat alles echt naar 0 gaat
-        let a = d[i];
-        if (a > 0) {
-          a = Math.max(0, a - 1 - a * COOL);
-          d[i] = a;
-        }
-        if (a === 0) {
+      for (let k = 0, i = 3; k < warmth.length; k++, i += 4) {
+        let a = Math.min(255, warmth[k] + fresh[i]);
+        // Afkoelen: hete plekken iets sneller dan het lichte spoor, zodat het spoor lang zichtbaar blijft
+        if (a > 0) a = Math.max(0, a - cool * (0.3 + (0.7 * a) / 255));
+        warmth[k] = a;
+        if (a < 1) {
           o[i] = 0;
           continue;
         }
@@ -141,12 +148,14 @@
         o[i - 1] = palette[p + 2];
         o[i] = a * MAX_OPACITY;
       }
-      hctx.putImageData(src, 0, 0);
       out.putImageData(outImg, 0, 0);
 
       // Stoppen zodra alles afgekoeld is: spaart batterij
       if (hot || now - quietSince < 500) requestAnimationFrame(frame);
-      else running = false;
+      else {
+        running = false;
+        lastFrame = 0;
+      }
     }
   }
 </script>
