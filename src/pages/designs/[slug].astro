@@ -413,6 +413,9 @@ const sectionPhotos = sections.flatMap((s) =>
     color: #fff;
     font-size: 0.85rem;
     line-height: 1.4;
+    /* Een lang bijschrift blijft binnen de foto en kan scrollen */
+    max-height: calc(100% - 1.5rem);
+    overflow-y: auto;
     opacity: 0;
     transform: translateY(4px);
     transition: opacity 0.2s, transform 0.2s;
@@ -423,6 +426,18 @@ const sectionPhotos = sections.flatMap((s) =>
   .case :global(.figure:focus figcaption) {
     opacity: 1;
     transform: none;
+    pointer-events: auto;
+  }
+  @media (max-width: 600px) {
+    .case :global(figcaption) {
+      left: 0.5rem;
+      right: 0.5rem;
+      bottom: 0.5rem;
+      max-height: calc(100% - 1rem);
+      padding: 0.5rem 0.65rem;
+      font-size: 0.74rem;
+      line-height: 1.35;
+    }
   }
   @media (prefers-reduced-motion: reduce) {
     .case :global(figcaption) {
