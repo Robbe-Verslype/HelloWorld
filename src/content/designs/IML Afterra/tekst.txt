@@ -24,7 +24,7 @@ Communicatie is informatie die zich verspreidt. Het visuele systeem vertrekt daa
 Elke snede in het patroon komt zo van een hub. Andere hubs geven een ander patroon: elke stad krijgt een eigen poster, die eigenlijk een kaart van haar netwerk is.
 
 # De tool
-Om het systeem op elke stad toe te passen, liet ik een tool bouwen die het patroon berekent vanuit de hubs van een stad. Ik testte die op de Vlaamse provinciehoofdsteden.
+Om niet voor elke stad alle vlakken zelf in Illustrator te moeten tekenen, maakte ik met AI (Claude) een tool die het patroon berekent vanuit de hubs van een stad. Zo kreeg ik met één klik, in tien seconden, een reeks van vijf verschillende posters. Ik testte de tool op de Vlaamse provinciehoofdsteden.
 
 [0-motion-systeem.mp4]
 
