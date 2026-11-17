@@ -1,0 +1,152 @@
+---
+// Heatmap-achtergrond (zoals heatmap.js): waar je met de muis of je vinger beweegt, ontstaat
+// een warmtespoor dat langzaam weer afkoelt. Het canvas ligt achter alle inhoud, dus thumbnails,
+// foto's en mockups blijven onaangeroerd.
+---
+
+<canvas class="heat" aria-hidden="true"></canvas>
+
+<style>
+  .heat {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    pointer-events: none;
+  }
+</style>
+
+<script>
+  /** Rekenresolutie t.o.v. het scherm: lager = sneller, het beeld is toch zacht. */
+  const SCALE = 0.4;
+  /** Straal van één warmtepunt in schermpixels. */
+  const RADIUS = 70;
+  /** Hoeveel warmte één beweging toevoegt (0–1). */
+  const STRENGTH = 0.22;
+  /** Hoe snel het afkoelt per frame (0–1). */
+  const COOL = 0.008;
+  /** Maximale dekking van de kleuren, zodat de achtergrond rustig blijft. */
+  const MAX_OPACITY = 0.7;
+  /** Kleurverloop van koud naar warm, zoals de standaard van heatmap.js. */
+  const GRADIENT: [number, string][] = [
+    [0.25, 'rgb(0,0,255)'],
+    [0.55, 'rgb(0,255,0)'],
+    [0.85, 'rgb(255,255,0)'],
+    [1, 'rgb(255,0,0)'],
+  ];
+
+  const canvas = document.querySelector<HTMLCanvasElement>('canvas.heat');
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (canvas && !reduceMotion) {
+    const out = canvas.getContext('2d')!;
+    // Onzichtbaar canvas waarin alleen de "warmte" (alfa) wordt opgebouwd
+    const heat = document.createElement('canvas');
+    const hctx = heat.getContext('2d', { willReadFrequently: true })!;
+
+    // Palet: 256 kleuren, warmte 0–255 → kleur
+    const pal = document.createElement('canvas');
+    pal.width = 256;
+    pal.height = 1;
+    const pctx = pal.getContext('2d')!;
+    const grad = pctx.createLinearGradient(0, 0, 256, 0);
+    for (const [stop, color] of GRADIENT) grad.addColorStop(stop, color);
+    pctx.fillStyle = grad;
+    pctx.fillRect(0, 0, 256, 1);
+    const palette = pctx.getImageData(0, 0, 256, 1).data;
+
+    // Eén zacht warmtepunt, vooraf getekend
+    const r = Math.max(4, Math.round(RADIUS * SCALE));
+    const stamp = document.createElement('canvas');
+    stamp.width = stamp.height = r * 2;
+    const sctx = stamp.getContext('2d')!;
+    const sg = sctx.createRadialGradient(r, r, 0, r, r, r);
+    sg.addColorStop(0, 'rgba(0,0,0,1)');
+    sg.addColorStop(1, 'rgba(0,0,0,0)');
+    sctx.fillStyle = sg;
+    sctx.fillRect(0, 0, r * 2, r * 2);
+
+    function resize() {
+      const w = Math.max(1, Math.round(innerWidth * SCALE));
+      const h = Math.max(1, Math.round(innerHeight * SCALE));
+      if (canvas!.width === w && canvas!.height === h) return;
+      canvas!.width = heat.width = w;
+      canvas!.height = heat.height = h;
+    }
+    resize();
+    addEventListener('resize', resize);
+
+    let last: { x: number; y: number } | null = null;
+    let running = false;
+    let quietSince = 0;
+
+    function addPoint(x: number, y: number) {
+      hctx.globalCompositeOperation = 'source-over';
+      hctx.globalAlpha = STRENGTH;
+      hctx.drawImage(stamp, x * SCALE - r, y * SCALE - r);
+    }
+
+    function onMove(e: PointerEvent) {
+      const p = { x: e.clientX, y: e.clientY };
+      // Punten tussenin opvullen, zodat een snelle beweging een doorlopend spoor geeft
+      if (last) {
+        const dist = Math.hypot(p.x - last.x, p.y - last.y);
+        const steps = Math.min(20, Math.floor(dist / (RADIUS / 3)));
+        for (let i = 1; i <= steps; i++) {
+          addPoint(last.x + ((p.x - last.x) * i) / (steps + 1), last.y + ((p.y - last.y) * i) / (steps + 1));
+        }
+      }
+      addPoint(p.x, p.y);
+      last = p;
+      quietSince = performance.now();
+      if (!running) {
+        running = true;
+        requestAnimationFrame(frame);
+      }
+    }
+    addEventListener('pointermove', onMove, { passive: true });
+    addEventListener('pointerdown', onMove, { passive: true });
+    document.addEventListener('pointerleave', () => (last = null));
+    addEventListener('pointerup', (e) => {
+      if (e.pointerType !== 'mouse') last = null;
+    });
+
+    let outImg: ImageData | null = null;
+
+    function frame(now: number) {
+      const w = heat.width;
+      const h = heat.height;
+      const src = hctx.getImageData(0, 0, w, h);
+      const d = src.data;
+      if (!outImg || outImg.width !== w || outImg.height !== h) outImg = out.createImageData(w, h);
+      const o = outImg.data;
+      let hot = false;
+      for (let i = 3; i < d.length; i += 4) {
+        // Afkoelen: een vast stapje plus een procentje, zodat alles echt naar 0 gaat
+        let a = d[i];
+        if (a > 0) {
+          a = Math.max(0, a - 1 - a * COOL);
+          d[i] = a;
+        }
+        if (a === 0) {
+          o[i] = 0;
+          continue;
+        }
+        hot = true;
+        // Inkleuren: warmte → kleur uit het palet
+        const p = (a | 0) * 4;
+        o[i - 3] = palette[p];
+        o[i - 2] = palette[p + 1];
+        o[i - 1] = palette[p + 2];
+        o[i] = a * MAX_OPACITY;
+      }
+      hctx.putImageData(src, 0, 0);
+      out.putImageData(outImg, 0, 0);
+
+      // Stoppen zodra alles afgekoeld is: spaart batterij
+      if (hot || now - quietSince < 500) requestAnimationFrame(frame);
+      else running = false;
+    }
+  }
+</script>
