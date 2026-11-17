@@ -289,69 +289,161 @@
     const lons = hubs.map((h) => h.lon);
     const [minLat, maxLat] = [Math.min(...lats), Math.max(...lats)];
     const [minLon, maxLon] = [Math.min(...lons), Math.max(...lons)];
-    // Noord bovenaan, zuid onderaan, west naar oost van links naar rechts
+    // Noord bovenaan, zuid onderaan, west naar oost van links naar rechts, in de echte verhoudingen van de kaart
     const top = H * 0.2;
     const bottom = H * 0.88;
-    const left = W * 0.1;
-    const right = W * 0.9;
+    const left = W * 0.06;
+    const right = W * 0.94;
+    const k = Math.cos((((minLat + maxLat) / 2) * Math.PI) / 180) || 1;
+    const spanX = (maxLon - minLon) * k || 1e-6;
+    const spanY = maxLat - minLat || 1e-6;
+    const scale = Math.min((right - left) / spanX, (bottom - top) / spanY);
+    const offX = left + ((right - left) - spanX * scale) / 2;
+    const offY = top + ((bottom - top) - spanY * scale) / 2;
     return hubs
       .map((h) => ({
         ...h,
-        x: left + ((h.lon - minLon) / (maxLon - minLon || 1)) * (right - left),
-        y: top + ((maxLat - h.lat) / (maxLat - minLat || 1)) * (bottom - top),
+        x: offX + (h.lon - minLon) * k * scale,
+        y: offY + (maxLat - h.lat) * scale,
       }))
       .sort((a, b) => a.y - b.y);
   }
 
-  type Block = { x0: number; x1: number };
-  /** Elke rij: elk blok splitst in twee, op de hub als die erin ligt, anders in het midden. */
-  function split(blocks: Block[], hubX: number): Block[] {
+  type Block = { x0: number; x1: number; dark: boolean };
+  /** Kleinste blok, zoals in de originele posters: smallere blokken splitsen niet meer verder. */
+  const MIN_SPLIT = W * 0.05; // een blok splitst enkel als het minstens 5% van de posterbreedte is
+  const MIN_PART = W * 0.015; // een splitsing op de hub mag geen reepje smaller dan 1,5% maken
+  /**
+   * Elke rij: elk blok splitst in twee, op de hub als die erin ligt, anders in het midden.
+   * Het linkse deel krijgt de eerste kleur, het rechtse de tweede. Een te smal blok loopt gewoon door.
+   */
+  function split(blocks: Block[], hubX: number, leftDark: boolean): Block[] {
     const out: Block[] = [];
     for (const b of blocks) {
-      const at = hubX > b.x0 && hubX < b.x1 ? hubX : (b.x0 + b.x1) / 2;
-      out.push({ x0: b.x0, x1: at }, { x0: at, x1: b.x1 });
+      if (b.x1 - b.x0 < MIN_SPLIT) {
+        out.push(b);
+        continue;
+      }
+      const onHub = hubX - b.x0 >= MIN_PART && b.x1 - hubX >= MIN_PART;
+      const at = onHub ? hubX : (b.x0 + b.x1) / 2;
+      out.push({ x0: b.x0, x1: at, dark: leftDark }, { x0: at, x1: b.x1, dark: !leftDark });
     }
     return out;
   }
 
-  function draw(ctx: CanvasRenderingContext2D, city: string, hubs: Hub[], withHubs: boolean) {
-    const pts = place(hubs);
+  /** Het blokkenpatroon: noord van boven naar beneden, zuid van onder naar boven. */
+  function drawPattern(ctx: CanvasRenderingContext2D, pts: Placed[]) {
     const nNorth = Math.ceil(pts.length / 2);
     const north = pts.slice(0, nNorth);
     const south = pts.slice(nNorth);
     const seam = south.length ? (north[north.length - 1].y + south[0].y) / 2 : H * 0.88;
+    const fill = (b: Block, y0: number, y1: number) => {
+      ctx.fillStyle = b.dark ? BLACK : CREAM;
+      ctx.fillRect(Math.floor(b.x0), Math.floor(y0), Math.ceil(b.x1 - b.x0) + 1, Math.ceil(y1 - y0) + 1);
+    };
 
     ctx.fillStyle = CREAM;
     ctx.fillRect(0, 0, W, H);
 
-    // Boven: één volledig zwart blok tot de eerste hub
-    ctx.fillStyle = BLACK;
-    ctx.fillRect(0, 0, W, Math.ceil(north[0].y));
-
-    // Van boven naar beneden: links zwart, rechts crème
-    let blocks: Block[] = [{ x0: 0, x1: W }];
+    // Boven: één volledig zwart blok tot de eerste hub; daarna links zwart, rechts crème
+    let blocks: Block[] = [{ x0: 0, x1: W, dark: true }];
+    fill(blocks[0], 0, north[0].y);
     north.forEach((hub, i) => {
-      blocks = split(blocks, hub.x);
-      const y0 = hub.y;
+      blocks = split(blocks, hub.x, true);
       const y1 = i + 1 < north.length ? north[i + 1].y : seam;
-      blocks.forEach((b, j) => {
-        ctx.fillStyle = j % 2 === 0 ? BLACK : CREAM;
-        ctx.fillRect(Math.floor(b.x0), Math.floor(y0), Math.ceil(b.x1 - b.x0) + 1, Math.ceil(y1 - y0) + 1);
-      });
+      blocks.forEach((b) => fill(b, hub.y, y1));
     });
 
-    // Van onder naar boven, in de andere kleur: links crème, rechts zwart
-    blocks = [{ x0: 0, x1: W }];
+    // Onder: één volledig crème blok vanaf de laatste hub; daarna omgekeerd: links crème, rechts zwart
+    blocks = [{ x0: 0, x1: W, dark: false }];
     const up = [...south].reverse();
     up.forEach((hub, i) => {
-      blocks = split(blocks, hub.x);
-      const y1 = hub.y;
+      blocks = split(blocks, hub.x, false);
       const y0 = i + 1 < up.length ? up[i + 1].y : seam;
-      blocks.forEach((b, j) => {
-        ctx.fillStyle = j % 2 === 0 ? CREAM : BLACK;
-        ctx.fillRect(Math.floor(b.x0), Math.floor(y0), Math.ceil(b.x1 - b.x0) + 1, Math.ceil(y1 - y0) + 1);
-      });
+      blocks.forEach((b) => fill(b, y0, hub.y));
     });
+  }
+
+  /**
+   * Waar AFTERRA komt: altijd crème, in het eerste grote aaneengesloten zwarte vlak (dat van bovenaan),
+   * in een hoek waar een crème blok begint. Zoals op de originele posters, ongeveer op 40% van de hoogte.
+   */
+  function labelSpot(pts: Placed[], tw: number, th: number) {
+    const c = document.createElement('canvas');
+    c.width = W;
+    c.height = H;
+    const cx = c.getContext('2d', { willReadFrequently: true })!;
+    drawPattern(cx, pts);
+    const data = cx.getImageData(0, 0, W, H).data;
+    const G = 4; // raster van 4 px
+    const cols = Math.floor(W / G);
+    const rows = Math.floor(H / G);
+    const dark = new Uint8Array(cols * rows);
+    for (let r = 0; r < rows; r++)
+      for (let q = 0; q < cols; q++) dark[r * cols + q] = data[((r * G + 2) * W + q * G + 2) * 4] < 128 ? 1 : 0;
+
+    // Het zwarte vlak dat aan de bovenrand vastzit
+    const comp = new Uint8Array(cols * rows);
+    const stack: number[] = [];
+    for (let q = 0; q < cols; q++) if (dark[q]) (comp[q] = 1), stack.push(q);
+    while (stack.length) {
+      const i = stack.pop()!;
+      const r = Math.floor(i / cols);
+      const q = i % cols;
+      for (const [rr, qq] of [[r + 1, q], [r - 1, q], [r, q + 1], [r, q - 1]]) {
+        if (rr < 0 || rr >= rows || qq < 0 || qq >= cols) continue;
+        const j = rr * cols + qq;
+        if (dark[j] && !comp[j]) (comp[j] = 1), stack.push(j);
+      }
+    }
+    const inComp = (x: number, y: number) => {
+      const q = Math.floor(x / G);
+      const r = Math.floor(y / G);
+      return q >= 0 && q < cols && r >= 0 && r < rows && comp[r * cols + q] === 1;
+    };
+    const fits = (x: number, y: number) => {
+      const m = 6;
+      for (let yy = y - th - m; yy <= y + m; yy += G)
+        for (let xx = x - m; xx <= x + tw + m; xx += G) if (!inComp(xx, yy)) return false;
+      return true;
+    };
+
+    // Bovenranden van crème blokken die tegen dit zwarte vlak liggen: hun hoeken zijn de kandidaten
+    const gap = W * 0.01;
+    const target = H * 0.42;
+    let best: { x: number; y: number } | null = null;
+    let bestScore = Infinity;
+    for (let r = 1; r < rows; r++) {
+      let q = 0;
+      while (q < cols) {
+        if (!dark[r * cols + q] && comp[(r - 1) * cols + q]) {
+          const q0 = q;
+          while (q < cols && !dark[r * cols + q] && comp[(r - 1) * cols + q]) q++;
+          const top = r * G;
+          const y = top - gap;
+          if (y - th < H * 0.16) continue;
+          const xs = q0 * G;
+          const xe = q * G;
+          // Linkerhoek (tekst links uitgelijnd met het crème blok) of rechterhoek
+          // Begint het crème blok aan de rand van de poster, dan houdt de tekst de gewone marge aan
+          const pad = W * 0.028;
+          for (const [x, pref] of [[Math.max(xs, pad), 0], [Math.min(xe, W - pad) - tw, 1]] as const) {
+            if (x < pad - 1 || x + tw > W - pad + 1) continue;
+            const score = Math.abs(y - target) + pref * 20;
+            if (score < bestScore && fits(x, y)) {
+              best = { x, y };
+              bestScore = score;
+            }
+          }
+        } else q++;
+      }
+    }
+    return best ?? { x: W * 0.028, y: pts[0].y - gap };
+  }
+
+  function draw(ctx: CanvasRenderingContext2D, city: string, hubs: Hub[], withHubs: boolean) {
+    const pts = place(hubs);
+    drawPattern(ctx, pts);
 
     // Tekst
     const pad = W * 0.028;
@@ -362,46 +454,12 @@
       ctx.fillText(line, pad, pad + W * 0.046 + i * W * 0.05);
     });
 
-    // AFTERRA op een effen vlak, zo dicht mogelijk bij de city hub, in de kleur die afsteekt
-    const hub = pts.find((p) => p.city) ?? pts[0];
+    // AFTERRA: altijd crème, in de hoek van een crème blok in het eerste grote zwarte vlak
     ctx.font = `700 ${W * 0.026}px ${FONT}`;
     const tw = ctx.measureText('AFTERRA').width;
-    const th = W * 0.02;
-    const sc = ctx.getTransform().a; // bij export op dubbele resolutie
-    const img = ctx.getImageData(0, 0, Math.round(W * sc), Math.round(H * sc));
-    const isDark = (x: number, y: number) => {
-      const i = (Math.round(y * sc) * img.width + Math.round(x * sc)) * 4;
-      return img.data[i] < 128;
-    };
-    /** Is het vak rond de tekst helemaal één kleur? Geeft die kleur terug, of null. */
-    const solid = (x: number, y: number) => {
-      const m = 8;
-      const dark = isDark(x - m, y - th - m);
-      for (let yy = y - th - m; yy <= y + m; yy += 4)
-        for (let xx = x - m; xx <= x + tw + m; xx += 4) if (isDark(xx, yy) !== dark) return null;
-      return dark;
-    };
-    let best: { x: number; y: number; dark: boolean } | null = null;
-    let bestD = Infinity;
-    const lines = [...pts.map((p) => p.y), seam];
-    for (const ly of lines) {
-      for (const y of [ly - W * 0.008, ly + th + W * 0.012]) {
-        if (y - th < H * 0.15 || y > H * 0.9) continue;
-        for (let x = pad; x <= W - tw - pad; x += 10) {
-          const d = Math.hypot(x - hub.x, y - hub.y);
-          if (d >= bestD) continue;
-          const dark = solid(x, y);
-          if (dark !== null) {
-            best = { x, y, dark };
-            bestD = d;
-          }
-        }
-      }
-    }
-    // Niets effens gevonden: in de zwarte band bovenaan
-    if (!best) best = { x: pad, y: pts[0].y - W * 0.012, dark: true };
-    ctx.fillStyle = best.dark ? CREAM : BLACK;
-    ctx.fillText('AFTERRA', best.x, best.y);
+    const spot = labelSpot(pts, tw, W * 0.02);
+    ctx.fillStyle = CREAM;
+    ctx.fillText('AFTERRA', spot.x, spot.y);
 
     // Onderaan: stad en uitnodiging
     ctx.fillStyle = BLACK;
