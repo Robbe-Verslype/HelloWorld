@@ -19,22 +19,22 @@
 </style>
 
 <script>
-  // Zelfde vorm als de demo van heatmap.js, in de kleuren van een warmtecamera
+  // Zelfde vorm als de demo van heatmap.js, maar in zwart en grijs
   const RADIUS = 50;
   const BLUR = 0.9;
-  const MAX_OPACITY = 0.4;
+  const MAX_OPACITY = 0.3;
   /** Een plek blijft zo lang volledig staan na de laatste keer dat je er kwam (ms)... */
   const HOLD = 1500;
   /** ...en vervaagt daarna in zoveel ms. */
   const FADE = 3000;
   /** Rekenresolutie: half zo groot rekenen houdt het vlot, het beeld is toch zacht. */
   const SCALE = 0.5;
-  /** Kleurverloop van koud naar warm, zoals een warmtecamera: donkerrood → oranje → geel → wit. */
+  /** Kleurverloop van koud naar warm: lichtgrijs → zwart. */
   const GRADIENT: [number, string][] = [
-    [0.25, 'rgb(120,10,10)'],
-    [0.55, 'rgb(230,70,10)'],
-    [0.85, 'rgb(255,190,30)'],
-    [1, 'rgb(255,255,230)'],
+    [0.25, 'rgb(210,210,210)'],
+    [0.55, 'rgb(160,160,160)'],
+    [0.85, 'rgb(100,100,100)'],
+    [1, 'rgb(50,50,50)'],
   ];
 
   const canvas = document.querySelector<HTMLCanvasElement>('canvas.heat');
