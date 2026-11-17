@@ -3,7 +3,6 @@ import { Image } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
 import Blocks from '../../components/Blocks.astro';
 import UbnGenerator from '../../components/UbnGenerator.astro';
-import AfterraPoster from '../../components/AfterraPoster.astro';
 import { getDesigns, isMedia, type Design } from '../../lib/designs';
 
 // Maakt automatisch één pagina per mapje
@@ -18,8 +17,6 @@ const { title, year, client, role, tags, thumbnail, hero, color, blocks, section
 const introBlocks = blocks.filter((b) => !(b.type === 'photo' && b.photo.name === hero.name));
 // Us By Night: bovenaan een live gegenereerd logo in plaats van een vaste foto
 const liveLogo = design.slug === 'us-by-night';
-// Afterra: onder de posters een generator om je eigen stad te maken
-const posterGenerator = design.slug === 'iml-afterra';
 const sectionPhotos = sections.flatMap((s) =>
   s.blocks.filter((b) => isMedia(b) && !(b.type === 'photo' && b.photo.name === hero.name)),
 );
@@ -108,7 +105,6 @@ const sectionPhotos = sections.flatMap((s) =>
             {gallery.map((photo) => (
               <Image src={photo.image} alt="" width={Math.min(1800, photo.image.width)} class="photo" />
             ))}
-            {posterGenerator && <AfterraPoster />}
           </div>
         )
       }
